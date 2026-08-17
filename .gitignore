@@ -1,0 +1,115 @@
+# ========================
+# Dependencies
+# ========================
+node_modules/
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+venv/
+env/
+.venv/
+*.egg-info/
+*.egg
+pip-log.txt
+
+# ========================
+# Build Outputs
+# ========================
+dist/
+build/
+*.js.map
+*.d.ts.map
+
+# ========================
+# Environment Variables
+# ========================
+.env
+.env.local
+.env.*.local
+!.env.example
+
+# ========================
+# IDE & Editors
+# ========================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+*.sublime-project
+*.sublime-workspace
+
+# ========================
+# OS Files
+# ========================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ========================
+# React / Vite
+# ========================
+*.local
+
+# ========================
+# Expo / React Native
+# ========================
+.expo/
+*.jks
+*.p8
+*.p12
+*.key
+*.mobileprovision
+*.orig.*
+web-build/
+ios/
+android/
+
+# ========================
+# ML Models (large binary files)
+# ========================
+*.joblib
+*.keras
+*.h5
+*.pkl
+*.pt
+*.pth
+*.onnx
+*.tflite
+*.pb
+ml/models/*
+!ml/models/.gitkeep
+backend/models/*
+!backend/models/.gitkeep
+
+# ========================
+# Logs
+# ========================
+*.log
+logs/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ========================
+# Testing & Coverage
+# ========================
+.coverage
+htmlcov/
+.pytest_cache/
+.mypy_cache/
+coverage/
+
+# ========================
+# Docker
+# ========================
+*.env.docker
+
+# ========================
+# Uploads & Generated
+# ========================
+uploads/
+generated_reports/
