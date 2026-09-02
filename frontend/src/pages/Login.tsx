@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { NavLink, useNavigate } from 'react-router';
-import { Mail, Lock, Eye, EyeOff, ArrowRight } from 'lucide-react';
-import { Button, Input, Card } from '../components/ui';
+import { Mail, Lock, Eye, EyeOff, ArrowRight, Sparkles } from 'lucide-react';
+import { Button, Input } from '../components/ui';
 import Logo from '../components/brand/Logo';
 import { setToken } from '../services/authService';
 
@@ -19,7 +19,7 @@ export default function Login() {
       setToken('demo-token');
       navigate('/dashboard');
       setLoading(false);
-    }, 1000);
+    }, 800);
   };
 
   const handleDemoLogin = () => {
@@ -27,82 +27,90 @@ export default function Login() {
     setTimeout(() => {
       setToken('demo-token');
       navigate('/dashboard');
-    }, 500);
+    }, 400);
   };
 
   return (
-    <div className="flex flex-col w-full max-w-md mx-auto animate-fade-in py-12 px-4">
-      <div className="mb-8 text-center flex flex-col items-center">
-        <div className="mb-6 flex justify-center">
-          <Logo className="h-12 w-auto text-primary" />
+    <div className="min-h-screen flex items-center justify-center bg-[#070c14] py-12 px-4 relative overflow-hidden">
+      {/* Background glow effects */}
+      <div className="absolute top-1/4 -left-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+      <div className="absolute bottom-1/4 -right-20 w-72 h-72 bg-emerald-500/10 rounded-full blur-3xl pointer-events-none" />
+
+      <div className="w-full max-w-md animate-fade-in relative z-10">
+        <div className="mb-8 text-center flex flex-col items-center">
+          <div className="mb-4 flex justify-center">
+            <Logo size={36} />
+          </div>
+          <h1 className="text-xl font-bold text-white mb-1">Welcome Back</h1>
+          <p className="text-xs text-slate-400">Sign in to your precision agronomy dashboard</p>
         </div>
-        <h1 className="text-2xl font-bold text-text mb-2">Welcome Back</h1>
-        <p className="text-sm text-muted">Sign in to your OptiCrop account</p>
-      </div>
 
-      <Card variant="elevated" padding="lg">
-        <form onSubmit={handleSubmit} className="space-y-5">
-          <Input
-            label="Email"
-            type="email"
-            placeholder="farmer@example.com"
-            icon={<Mail className="w-5 h-5 text-muted" />}
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-
-          <div className="relative">
+        <div className="bg-[#0c1524] border border-emerald-500/35 rounded-2xl p-6 md:p-8 shadow-[0_0_30px_rgba(0,0,0,0.6)]">
+          <form onSubmit={handleSubmit} className="space-y-4">
             <Input
-              label="Password"
-              type={showPassword ? "text" : "password"}
-              placeholder="••••••••"
-              icon={<Lock className="w-5 h-5 text-muted" />}
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
+              label="Email Address"
+              type="email"
+              placeholder="farmer@opticrop.ai"
+              icon={<Mail className="w-4 h-4 text-emerald-400" />}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
               required
             />
-            <button 
-              type="button" 
-              onClick={() => setShowPassword(!showPassword)}
-              className="absolute right-3 top-9 text-muted hover:text-text focus:outline-none"
-            >
-              {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-            </button>
-          </div>
 
-          <div className="flex items-center justify-between text-sm">
-            <label className="flex items-center space-x-2 cursor-pointer">
-              <input type="checkbox" className="rounded-sm border-border text-primary focus:ring-primary w-4 h-4" />
-              <span className="text-text-secondary">Remember me</span>
-            </label>
-            <NavLink to="/forgot-password" className="text-primary hover:text-primary-dark font-medium transition-colors">
-              Forgot password?
-            </NavLink>
-          </div>
+            <div className="relative">
+              <Input
+                label="Password"
+                type={showPassword ? "text" : "password"}
+                placeholder="••••••••"
+                icon={<Lock className="w-4 h-4 text-emerald-400" />}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+              />
+              <button 
+                type="button" 
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-3.5 top-8 text-slate-400 hover:text-emerald-400 focus:outline-none transition-colors"
+              >
+                {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+              </button>
+            </div>
 
-          <Button type="submit" variant="primary" fullWidth loading={loading} icon={<ArrowRight className="w-4 h-4" />}>
-            Sign In
-          </Button>
+            <div className="flex items-center justify-between text-xs pt-1">
+              <label className="flex items-center space-x-2 cursor-pointer">
+                <input type="checkbox" className="rounded bg-[#070c14] border-[#162438] text-emerald-500 focus:ring-0 w-3.5 h-3.5" />
+                <span className="text-slate-400">Remember me</span>
+              </label>
+              <NavLink to="/forgot-password" className="text-emerald-400 hover:text-emerald-300 font-semibold transition-colors">
+                Forgot password?
+              </NavLink>
+            </div>
 
-          <div className="relative flex items-center py-2">
-            <div className="flex-grow border-t border-border"></div>
-            <span className="flex-shrink-0 mx-4 text-muted text-sm">or</span>
-            <div className="flex-grow border-t border-border"></div>
-          </div>
+            <div className="pt-2">
+              <Button type="submit" fullWidth loading={loading} size="lg" icon={<ArrowRight className="w-4 h-4" />}>
+                Sign In
+              </Button>
+            </div>
 
-          <Button type="button" variant="outline" fullWidth onClick={handleDemoLogin}>
-            Continue as Demo User
-          </Button>
-        </form>
-      </Card>
+            <div className="relative flex items-center py-2">
+              <div className="flex-grow border-t border-[#162438]"></div>
+              <span className="flex-shrink-0 mx-3 text-slate-500 text-xs font-semibold uppercase">or</span>
+              <div className="flex-grow border-t border-[#162438]"></div>
+            </div>
 
-      <p className="text-center mt-6 text-sm text-text-secondary">
-        Don't have an account?{' '}
-        <NavLink to="/register" className="text-primary hover:text-primary-dark font-medium transition-colors">
-          Register here
-        </NavLink>
-      </p>
+            <Button type="button" variant="secondary" fullWidth onClick={handleDemoLogin} icon={<Sparkles className="w-4 h-4 text-emerald-400" />}>
+              Continue as Demo Farmer
+            </Button>
+          </form>
+        </div>
+
+        <p className="text-center mt-6 text-xs text-slate-400">
+          Don't have an account?{' '}
+          <NavLink to="/register" className="text-emerald-400 hover:text-emerald-300 font-bold transition-colors">
+            Register Now
+          </NavLink>
+        </p>
+      </div>
     </div>
   );
 }

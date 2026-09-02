@@ -1,41 +1,55 @@
 import React, { useState } from 'react';
-import { User, Mail, Phone, MapPin, Save, Shield } from 'lucide-react';
-import { Card, Button, Input, Select } from '../components/ui';
+import { User, Mail, Phone, MapPin, Save, Shield, Sprout, Check } from 'lucide-react';
+import { Button, Input, Select } from '../components/ui';
 import PageWrapper from '../components/layout/PageWrapper';
 
 export default function Profile() {
   const [loading, setLoading] = useState(false);
+  const [saved, setSaved] = useState(false);
 
   const handleSave = () => {
     setLoading(true);
-    setTimeout(() => setLoading(false), 1000);
+    setTimeout(() => {
+      setLoading(false);
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    }, 800);
   };
 
   return (
-    <PageWrapper title="Farmer Profile">
-      <div className="max-w-4xl space-y-6 animate-fade-in">
-        <Card padding="lg">
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-8 border-b border-border">
-            <div className="w-24 h-24 rounded-full bg-primary flex items-center justify-center text-white text-3xl font-bold shadow-md">
+    <PageWrapper title="Farmer Profile" subtitle="Manage your personal agronomic data, farm specifications, and security credentials.">
+      <div className="max-w-4xl space-y-6 animate-fade-in -mt-4">
+        {/* Main Details Card */}
+        <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-6 md:p-8 shadow-md">
+          {/* Avatar Section */}
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-6 border-b border-[#162438]">
+            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 border-2 border-emerald-400/50 flex items-center justify-center text-white text-2xl font-black shadow-[0_0_20px_rgba(34,197,94,0.3)]">
               JD
             </div>
             <div className="text-center sm:text-left">
-              <h2 className="text-2xl font-bold text-text">John Doe</h2>
-              <p className="text-muted mb-2">Member since Jan 2026</p>
-              <Button variant="outline" size="sm">Change Photo</Button>
+              <h2 className="text-xl font-bold text-white flex items-center justify-center sm:justify-start gap-2">
+                John Doe
+                <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">Verified Farmer</span>
+              </h2>
+              <p className="text-xs text-slate-400 mt-0.5 mb-3 font-mono">Member ID: #OPTI-84920 · Member since Jan 2026</p>
+              <Button variant="secondary" size="sm">Change Avatar</Button>
             </div>
           </div>
 
-          <h3 className="text-lg font-bold text-text mb-4">Personal Information</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Personal Info */}
+          <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-4">Personal Information</h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <Input label="Full Name" defaultValue="John Doe" icon={<User className="w-4 h-4" />} />
-            <Input label="Email Address" defaultValue="john.doe@example.com" disabled icon={<Mail className="w-4 h-4" />} />
+            <Input label="Email Address" defaultValue="john.doe@opticrop.ai" disabled icon={<Mail className="w-4 h-4" />} />
             <Input label="Phone Number" defaultValue="+91 98765 43210" icon={<Phone className="w-4 h-4" />} />
-            <Input label="Location" defaultValue="Coimbatore, Tamil Nadu" icon={<MapPin className="w-4 h-4" />} />
+            <Input label="Primary Location" defaultValue="Coimbatore, Tamil Nadu" icon={<MapPin className="w-4 h-4" />} />
           </div>
 
-          <h3 className="text-lg font-bold text-text mb-4">Farm Details</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          {/* Farm Details */}
+          <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+            <Sprout size={14} /> Farm Specifications
+          </h3>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <div className="flex gap-2 items-end">
               <div className="flex-grow">
                 <Input label="Farm Size" defaultValue="5" type="number" />
@@ -45,55 +59,46 @@ export default function Profile() {
               </div>
             </div>
             <Select 
-              label="Soil Type" 
+              label="Dominant Soil Type" 
               options={[
-                {value: 'clay', label: 'Clay'},
-                {value: 'sandy', label: 'Sandy'},
-                {value: 'loamy', label: 'Loamy'},
-                {value: 'red', label: 'Red Soil'},
-                {value: 'black', label: 'Black Soil'}
+                {value: 'red', label: 'Red Loam Soil'},
+                {value: 'clay', label: 'Clayey Soil'},
+                {value: 'sandy', label: 'Sandy Loam'},
+                {value: 'black', label: 'Black Cotton Soil'}
               ]} 
               value="red" 
             />
-            <Input label="Main Crops (comma separated)" defaultValue="Rice, Sugarcane, Cotton" className="md:col-span-2" />
+            <div className="md:col-span-2">
+              <Input label="Primary Crops Cultivated" defaultValue="Rice, Sugarcane, Cotton, Maize" />
+            </div>
           </div>
 
-          <h3 className="text-lg font-bold text-text mb-4">Preferences</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-            <Select 
-              label="Preferred Language" 
-              options={[
-                {value: 'en', label: 'English'},
-                {value: 'ta', label: 'Tamil'},
-                {value: 'ml', label: 'Malayalam'}
-              ]} 
-              value="en" 
-            />
-          </div>
-
-          <div className="flex justify-end">
-            <Button variant="primary" onClick={handleSave} loading={loading} icon={<Save className="w-4 h-4" />}>
-              Save Changes
+          <div className="flex justify-end pt-4 border-t border-[#162438]">
+            <Button variant="primary" size="md" onClick={handleSave} loading={loading} icon={saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}>
+              {saved ? "Saved Successfully!" : "Save Profile Details"}
             </Button>
           </div>
-        </Card>
+        </div>
 
-        <Card padding="lg">
-          <div className="flex items-center gap-3 mb-6">
-            <Shield className="w-6 h-6 text-primary" />
-            <h3 className="text-lg font-bold text-text">Security</h3>
+        {/* Security Card */}
+        <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-6 md:p-8 shadow-md">
+          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-[#162438]">
+            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+              <Shield className="w-4 h-4" />
+            </div>
+            <h3 className="text-sm font-bold text-white">Security & Password</h3>
           </div>
           
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <Input label="Current Password" type="password" placeholder="••••••••" />
             <div className="hidden md:block"></div>
             <Input label="New Password" type="password" placeholder="••••••••" />
             <Input label="Confirm New Password" type="password" placeholder="••••••••" />
           </div>
           <div className="mt-6 flex justify-end">
-            <Button variant="outline">Update Password</Button>
+            <Button variant="secondary" size="sm">Update Password</Button>
           </div>
-        </Card>
+        </div>
       </div>
     </PageWrapper>
   );

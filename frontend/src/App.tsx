@@ -12,17 +12,14 @@ import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
 import Dashboard from './pages/Dashboard';
 import CropPrediction from './pages/CropPrediction';
-import CropSuitability from './pages/CropSuitability';
 import LeafDiagnosis from './pages/LeafDiagnosis';
 import Assistant from './pages/Assistant';
 import Weather from './pages/Weather';
 import Fertilizer from './pages/Fertilizer';
-import Irrigation from './pages/Irrigation';
 import History from './pages/History';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
-import Admin from './pages/Admin';
 import NotFound from './pages/NotFound';
 
 const queryClient = new QueryClient({
@@ -60,17 +57,14 @@ const router = createBrowserRouter([
             children: [
               { path: 'dashboard', element: <Dashboard /> },
               { path: 'crop-prediction', element: <CropPrediction /> },
-              { path: 'crop-suitability', element: <CropSuitability /> },
               { path: 'leaf-diagnosis', element: <LeafDiagnosis /> },
               { path: 'assistant', element: <Assistant /> },
               { path: 'weather', element: <Weather /> },
               { path: 'fertilizer', element: <Fertilizer /> },
-              { path: 'irrigation', element: <Irrigation /> },
               { path: 'history', element: <History /> },
               { path: 'reports', element: <Reports /> },
               { path: 'profile', element: <Profile /> },
               { path: 'settings', element: <Settings /> },
-              { path: 'admin', element: <Admin /> },
             ],
           },
         ],

@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import PageWrapper from '../components/layout/PageWrapper';
+import { predictCrop } from '../api/crop';
 import {
   Sprout,
   MapPin,
@@ -13,9 +14,11 @@ import {
   FlaskConical,
   Leaf,
   CheckCircle2,
-  Info,
+  AlertCircle,
   BarChart3,
   Star,
+  Check,
+  Info,
 } from 'lucide-react';
 
 const SEASON_OPTIONS = [
@@ -69,46 +72,8 @@ interface CropResult {
   seasonSuit: string;
   description: string;
   yieldEstimate: string;
+  reasons: string[];
 }
-
-const MOCK_RESULTS: CropResult[] = [
-  {
-    rank: 1,
-    name: 'Rice',
-    emoji: '🌾',
-    confidence: 96.4,
-    npkMatch: 'Optimal',
-    tempRange: 'Suitable (20–35°C)',
-    rainfallStatus: 'Adequate',
-    seasonSuit: 'Kharif season',
-    description: 'Rice thrives in high humidity and warm temperatures. Your soil parameters are an excellent match for high-yield paddy cultivation.',
-    yieldEstimate: '4.5–6.0 t/ha',
-  },
-  {
-    rank: 2,
-    name: 'Maize',
-    emoji: '🌽',
-    confidence: 91.8,
-    npkMatch: 'Good',
-    tempRange: 'Suitable (18–32°C)',
-    rainfallStatus: 'Adequate',
-    seasonSuit: 'Kharif / Zaid',
-    description: 'Maize performs well in your conditions. Slightly adjust potassium for optimal ear formation.',
-    yieldEstimate: '3.5–5.0 t/ha',
-  },
-  {
-    rank: 3,
-    name: 'Cotton',
-    emoji: '🪻',
-    confidence: 87.2,
-    npkMatch: 'Good',
-    tempRange: 'Suitable (20–40°C)',
-    rainfallStatus: 'Borderline',
-    seasonSuit: 'Kharif season',
-    description: 'Cotton is viable with your soil pH and NPK. Monitor rainfall and supplement with irrigation during flowering.',
-    yieldEstimate: '1.5–2.5 t/ha',
-  },
-];
 
 interface FieldProps {
   label: string;
@@ -196,8 +161,8 @@ function ConfidenceBar({ confidence }: { confidence: number }) {
     confidence >= 90
       ? '#176B3A'
       : confidence >= 80
-      ? '#8BC34A'
-      : '#D89B27';
+        ? '#8BC34A'
+        : '#D89B27';
   return (
     <div className="confidence-bar-track">
       <div
@@ -213,6 +178,9 @@ export default function CropPrediction() {
   const [showResults, setShowResults] = useState(false);
   const [showOptional, setShowOptional] = useState(false);
   const [expandedResult, setExpandedResult] = useState<number | null>(0);
+  const [results, setResults] = useState<CropResult[]>([]);
+  const [modelInfo, setModelInfo] = useState<string>('OptiCrop Random Forest (99.55% Accuracy)');
+  const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<FormData>({
     n: '',
@@ -233,15 +201,62 @@ export default function CropPrediction() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handlePredict = (e: React.FormEvent) => {
+  const handlePredict = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
+    setError(null);
     setShowResults(false);
     setExpandedResult(0);
-    setTimeout(() => {
+
+    try {
+      const payload = {
+        nitrogen: parseFloat(formData.n) || 0,
+        phosphorus: parseFloat(formData.p) || 0,
+        potassium: parseFloat(formData.k) || 0,
+        temperature: parseFloat(formData.temp) || 0,
+        humidity: parseFloat(formData.humidity) || 0,
+        ph: parseFloat(formData.ph) || 7.0,
+        rainfall: parseFloat(formData.rainfall) || 0,
+        season: formData.season || 'kharif',
+        location: formData.location || undefined,
+        soil_type: formData.soilType || undefined,
+        irrigation: formData.irrigation || undefined,
+      };
+
+      const response = await predictCrop(payload);
+      
+      if (response && response.top_recommendations && response.top_recommendations.length > 0) {
+        const mapped: CropResult[] = response.top_recommendations.map((item, idx) => ({
+          rank: idx + 1,
+          name: item.crop,
+          emoji: item.emoji || '🌱',
+          confidence: Math.round(item.confidence * 1000) / 10,
+          npkMatch: item.npk_compatibility >= 0.85 ? 'Optimal' : item.npk_compatibility >= 0.70 ? 'Good' : 'Moderate',
+          tempRange: item.temp_compatibility >= 0.85 ? 'Suitable' : 'Moderate',
+          rainfallStatus: item.rainfall_compatibility >= 0.80 ? 'Adequate' : 'Requires Irrigation',
+          seasonSuit: item.season_compatibility >= 0.90 ? 'Ideal Season' : 'Moderate',
+          description: item.description || (item.reasons && item.reasons.length > 0 ? item.reasons.join('. ') + '.' : `${item.crop} is suitable for your soil and climate.`),
+          yieldEstimate: item.yield_estimate || '3.5–5.0 t/ha',
+          reasons: item.reasons || [],
+        }));
+        setResults(mapped);
+        if (response.model_name) {
+          setModelInfo(response.model_name);
+        }
+        setShowResults(true);
+      } else {
+        throw new Error('No predictions returned from the ML service.');
+      }
+    } catch (err: any) {
+      console.error('Crop prediction error:', err);
+      setError(
+        err?.response?.data?.message ||
+        err?.message ||
+        'Unable to connect to the prediction engine. Please check backend server.'
+      );
+    } finally {
       setLoading(false);
-      setShowResults(true);
-    }, 2000);
+    }
   };
 
   const handleReset = () => {
@@ -258,6 +273,8 @@ export default function CropPrediction() {
       soilType: '',
       irrigation: '',
     });
+    setResults([]);
+    setError(null);
     setShowResults(false);
   };
 
@@ -275,6 +292,7 @@ export default function CropPrediction() {
       soilType: 'clay',
       irrigation: 'rainfed',
     });
+    setError(null);
   };
 
   return (
@@ -530,6 +548,17 @@ export default function CropPrediction() {
             </div>
 
             <div className="crop-results-body">
+              {/* Error State */}
+              {error && (
+                <div className="p-4 mb-4 rounded-xl bg-red-500/10 border border-red-500/20 text-red-600 flex items-start gap-3">
+                  <AlertCircle size={18} className="flex-shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-semibold text-sm">Prediction Error</h4>
+                    <p className="text-xs mt-0.5 opacity-90">{error}</p>
+                  </div>
+                </div>
+              )}
+
               {/* Empty State */}
               {!loading && !showResults && (
                 <div className="crop-empty-state">
@@ -539,7 +568,7 @@ export default function CropPrediction() {
                   <h3 className="crop-empty-title">Ready to Predict</h3>
                   <p className="crop-empty-desc">
                     Fill in the soil and environment parameters on the left, then click
-                    <strong> Predict Best Crop</strong> to get AI-powered recommendations.
+                    <strong> Predict Best Crop</strong> to run the real AI/ML crop model.
                   </p>
                   <div className="crop-tip-list">
                     <div className="crop-tip">
@@ -570,29 +599,33 @@ export default function CropPrediction() {
                       <CheckCircle2 size={14} /> Parsing soil nutrients
                     </div>
                     <div className="crop-loading-step crop-loading-step--active">
-                      <span className="crop-spinner-sm" /> Running ML model
+                      <span className="crop-spinner-sm" /> Running Random Forest ML Pipeline
                     </div>
                     <div className="crop-loading-step">
-                      <span className="w-3.5 h-3.5 rounded-full border border-border" /> Ranking results
+                      <span className="w-3.5 h-3.5 rounded-full border border-border" /> Calculating agronomic suitability
                     </div>
                   </div>
                 </div>
               )}
 
               {/* Results */}
-              {showResults && !loading && (
+              {showResults && !loading && results.length > 0 && (
                 <div className="crop-results-list animate-fade-in">
                   <div className="crop-results-header">
                     <TrendingUp size={15} className="text-primary" />
-                    <span>Top 3 Recommendations</span>
+                    <span>Top Recommendations</span>
+                    {modelInfo && (
+                      <span className="ml-auto text-[11px] text-muted-foreground font-mono bg-background/50 px-2 py-0.5 rounded-full border border-border">
+                        {modelInfo}
+                      </span>
+                    )}
                   </div>
 
-                  {MOCK_RESULTS.map((result, idx) => (
+                  {results.map((result, idx) => (
                     <div
-                      key={result.rank}
-                      className={`crop-result-card ${idx === 0 ? 'crop-result-card--top' : ''} ${
-                        expandedResult === idx ? 'crop-result-card--expanded' : ''
-                      }`}
+                      key={`${result.name}-${result.rank}`}
+                      className={`crop-result-card ${idx === 0 ? 'crop-result-card--top' : ''} ${expandedResult === idx ? 'crop-result-card--expanded' : ''
+                        }`}
                       onClick={() => setExpandedResult(expandedResult === idx ? null : idx)}
                     >
                       <div className="crop-result-row">
@@ -612,13 +645,12 @@ export default function CropPrediction() {
                         </div>
                         <div className="crop-result-confidence">
                           <span
-                            className={`crop-confidence-badge ${
-                              result.confidence >= 90
+                            className={`crop-confidence-badge ${result.confidence >= 90
                                 ? 'crop-confidence-badge--high'
                                 : result.confidence >= 80
-                                ? 'crop-confidence-badge--med'
-                                : 'crop-confidence-badge--low'
-                            }`}
+                                  ? 'crop-confidence-badge--med'
+                                  : 'crop-confidence-badge--low'
+                              }`}
                           >
                             {result.confidence}%
                           </span>
@@ -632,6 +664,23 @@ export default function CropPrediction() {
                       {expandedResult === idx && (
                         <div className="crop-result-detail animate-fade-in">
                           <p className="crop-result-desc">{result.description}</p>
+                          
+                          {result.reasons && result.reasons.length > 0 && (
+                            <div className="my-2 p-2.5 rounded-lg bg-primary/5 border border-primary/10">
+                              <p className="text-xs font-semibold text-primary mb-1.5 flex items-center gap-1.5">
+                                <Check size={13} /> Agronomic Insights
+                              </p>
+                              <ul className="text-xs space-y-1 text-muted-foreground">
+                                {result.reasons.map((r, rIdx) => (
+                                  <li key={rIdx} className="flex items-center gap-1.5">
+                                    <span className="w-1.5 h-1.5 rounded-full bg-primary flex-shrink-0" />
+                                    <span>{r}</span>
+                                  </li>
+                                ))}
+                              </ul>
+                            </div>
+                          )}
+
                           <div className="crop-result-metrics">
                             <div className="crop-metric">
                               <FlaskConical size={12} />
@@ -660,7 +709,7 @@ export default function CropPrediction() {
                   ))}
 
                   <p className="crop-disclaimer">
-                    ⚠️ Model confidence reflects prediction probability, not scientific certainty. Always consult local agricultural experts.
+                    ⚠️ Model confidence reflects ML probability from multi-feature agronomic data. Always verify with local agricultural extension officers.
                   </p>
                 </div>
               )}
@@ -671,3 +720,5 @@ export default function CropPrediction() {
     </PageWrapper>
   );
 }
+
+
