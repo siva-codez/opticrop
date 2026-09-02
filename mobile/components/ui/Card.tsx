@@ -27,12 +27,15 @@ export const Card: React.FC<CardProps> = ({ children, style, padding = 'md', ...
 const styles = StyleSheet.create({
   card: {
     backgroundColor: Colors.surface,
-    borderRadius: 16,
-    shadowColor: Colors.black,
+    borderRadius: 18,
+    borderWidth: 1,
+    borderColor: '#162438',
+    shadowColor: Colors.primary,
     shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
+    shadowOpacity: 0.1,
     shadowRadius: 8,
-    elevation: 2,
+    elevation: 3,
     marginBottom: 16,
   },
 });
+

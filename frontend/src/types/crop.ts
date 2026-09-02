@@ -6,26 +6,27 @@ export interface CropPredictionRequest {
   humidity: number;
   ph: number;
   rainfall: number;
+  season?: string;
+  location?: string;
+  soil_type?: string;
+}
+
+export interface CropRecommendationItem {
+  crop: string;
+  confidence: number;
+  emoji: string;
+  reasons: string[];
+  npk_compatibility: number;
+  temp_compatibility: number;
+  rainfall_compatibility: number;
+  ph_compatibility: number;
+  season_compatibility: number;
+  description: string;
+  yield_estimate: string;
 }
 
 export interface CropPredictionResponse {
-  prediction: string;
-  confidence: number;
-  alternatives: Array<{ crop: string; confidence: number }>;
-}
-
-export interface CropRecommendation {
-  cropName: string;
-  reason: string;
-}
-
-export interface CropSuitabilityRequest {
-  crop: string;
-  locationData: any; // Placeholder for more specific typing
-}
-
-export interface CropSuitabilityResponse {
-  isSuitable: boolean;
-  score: number;
-  details: string;
+  top_recommendations: CropRecommendationItem[];
+  model_name?: string;
+  accuracy?: number;
 }

@@ -1,5 +1,5 @@
-from pydantic import BaseModel, ConfigDict
-from typing import List
+from pydantic import BaseModel
+from typing import List, Optional
 
 class CropPredictionRequest(BaseModel):
     nitrogen: float
@@ -9,35 +9,25 @@ class CropPredictionRequest(BaseModel):
     humidity: float
     ph: float
     rainfall: float
-    season: str
+    season: Optional[str] = "kharif"
+    location: Optional[str] = None
+    soil_type: Optional[str] = None
+    irrigation: Optional[str] = None
 
 class CropRecommendation(BaseModel):
     crop: str
     confidence: float
-    reasons: List[str]
-    npk_compatibility: float
-    temp_compatibility: float
-    rainfall_compatibility: float
-    ph_compatibility: float
-    season_compatibility: float
+    emoji: str = "🌱"
+    reasons: List[str] = []
+    npk_compatibility: float = 0.90
+    temp_compatibility: float = 0.90
+    rainfall_compatibility: float = 0.90
+    ph_compatibility: float = 0.90
+    season_compatibility: float = 0.90
+    description: str = ""
+    yield_estimate: str = ""
 
 class CropPredictionResponse(BaseModel):
     top_recommendations: List[CropRecommendation]
-
-class CropSuitabilityRequest(BaseModel):
-    crop: str
-    nitrogen: float
-    phosphorus: float
-    potassium: float
-    temperature: float
-    humidity: float
-    ph: float
-    rainfall: float
-    season: str
-
-class CropSuitabilityResponse(BaseModel):
-    suitability_level: str
-    score: float
-    positive_factors: List[str]
-    limiting_factors: List[str]
-    suggestions: List[str]
+    model_name: Optional[str] = "OptiCrop Random Forest Classifier"
+    accuracy: Optional[float] = 0.9955

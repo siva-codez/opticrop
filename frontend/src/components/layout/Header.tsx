@@ -1,6 +1,5 @@
 import React from 'react';
-import { Bell, CloudRain, Search, Menu } from 'lucide-react';
-import { Input } from '../ui/Input';
+import { Bell, Search, Menu } from 'lucide-react';
 
 interface HeaderProps {
   onMenuClick?: () => void;
@@ -15,45 +14,55 @@ export function Header({ onMenuClick }: HeaderProps) {
   };
 
   return (
-    <header className="bg-surface border-b border-border sticky top-0 z-30 px-4 md:px-8 h-16 flex items-center justify-between">
+    <header className="bg-[#070c14] border-b border-[#162438] sticky top-0 z-30 px-4 md:px-8 h-18 flex items-center justify-between">
       <div className="flex items-center gap-4">
         {onMenuClick && (
           <button 
-            className="md:hidden p-2 -ml-2 text-muted hover:bg-cream rounded-lg focus:outline-none focus:ring-2 focus:ring-primary/20"
+            className="md:hidden p-2 -ml-2 text-muted hover:bg-[#0c1524] rounded-lg focus:outline-none"
             onClick={onMenuClick}
           >
-            <Menu size={24} />
+            <Menu size={22} />
           </button>
         )}
         <div className="hidden md:block">
-          <h1 className="text-lg font-bold text-text">{getGreeting()}, Farmer!</h1>
+          <h1 className="text-base font-bold text-white flex items-center gap-1.5">
+            {getGreeting()}, Farmer! <span className="text-lg">🌾</span>
+          </h1>
           <p className="text-xs text-muted">Ready to optimize your crops today?</p>
         </div>
       </div>
 
-      <div className="flex items-center gap-3 md:gap-6">
-        <div className="hidden lg:block w-64">
-          <Input 
-            placeholder="Search resources..." 
-            icon={<Search size={16} />}
-            className="bg-cream border-transparent focus:bg-white h-9"
+      <div className="flex items-center gap-3 md:gap-5">
+        {/* Search bar */}
+        <div className="hidden sm:flex items-center gap-2 bg-[#0c1524] border border-[#162438] rounded-full px-4 py-2 w-56 lg:w-72 focus-within:border-emerald-500/50 transition-colors">
+          <Search size={15} className="text-muted" />
+          <input
+            type="text"
+            placeholder="Search resources..."
+            className="bg-transparent text-xs text-white placeholder-muted focus:outline-none w-full"
           />
         </div>
 
-        <div className="flex items-center gap-2 bg-cream text-text rounded-full px-4 py-1.5 text-sm font-medium border border-border/50">
-          <CloudRain size={16} className="text-primary" />
+        {/* Weather Status Badge */}
+        <div className="flex items-center gap-2 bg-[#0c1524] border border-[#162438] text-white rounded-full px-4 py-2 text-xs font-medium">
+          <span className="text-amber-400">☀️</span>
           <span>24°C, Sunny</span>
         </div>
 
-        <button className="relative p-2 text-muted hover:bg-cream rounded-full transition-colors focus:outline-none focus:ring-2 focus:ring-primary/20">
-          <Bell size={20} />
-          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-danger rounded-full border border-surface"></span>
+        {/* Notifications */}
+        <button className="relative p-2.5 bg-[#0c1524] border border-[#162438] text-muted hover:text-white rounded-full transition-colors">
+          <Bell size={16} />
+          <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-emerald-500 rounded-full shadow-[0_0_6px_#22c55e]"></span>
         </button>
 
-        <div className="w-9 h-9 rounded-full bg-primary/10 border border-primary/20 flex items-center justify-center text-primary font-bold text-sm cursor-pointer hover:bg-primary/20 transition-colors">
+        {/* User Profile Avatar */}
+        <div className="w-9 h-9 rounded-full bg-[#0c1524] border border-[#162438] flex items-center justify-center text-white font-bold text-xs cursor-pointer hover:border-emerald-500/50 transition-colors shadow-inner">
           JD
         </div>
       </div>
     </header>
   );
 }
+
+export default Header;
+

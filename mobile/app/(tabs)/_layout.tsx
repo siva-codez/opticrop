@@ -25,20 +25,20 @@ export default function TabLayout() {
         tabBarInactiveTintColor: Colors.muted,
         tabBarStyle: {
           borderTopWidth: 1,
-          borderTopColor: Colors.border,
-          backgroundColor: Colors.surface,
+          borderTopColor: '#162438',
+          backgroundColor: '#060b13',
           elevation: 0,
           shadowOpacity: 0,
         },
         headerStyle: {
-          backgroundColor: Colors.surface,
+          backgroundColor: '#070c14',
           elevation: 0,
           shadowOpacity: 0,
           borderBottomWidth: 1,
-          borderBottomColor: Colors.border,
+          borderBottomColor: '#162438',
         },
         headerTitleStyle: {
-          color: Colors.text,
+          color: Colors.white,
           fontWeight: 'bold',
         }
       }}>
