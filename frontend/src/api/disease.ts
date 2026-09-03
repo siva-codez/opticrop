@@ -5,10 +5,10 @@ export const predictDisease = async (formData: FormData): Promise<DiseasePredict
   const response = await apiClient.post('/disease/predict', formData, {
     headers: { 'Content-Type': 'multipart/form-data' },
   });
-  return response.data;
+  return response.data?.data || response.data;
 };
 
 export const getDiseaseHistory = async () => {
   const response = await apiClient.get('/disease/history');
-  return response.data;
+  return response.data?.data || response.data;
 };

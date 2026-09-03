@@ -1317,4 +1317,46 @@ body {
   line-height: 1.6;
 }
 
+.diagnosis-severity-badge--high {
+  background: rgba(239, 68, 68, 0.15);
+  color: #f87171;
+  border: 1px solid rgba(239, 68, 68, 0.35);
+}
 
+.diagnosis-severity-badge--critical {
+  background: rgba(220, 38, 38, 0.25);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.55);
+  animation: pulse 2s infinite;
+}
+
+.diagnosis-error {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  background: rgba(239, 68, 68, 0.1);
+  border: 1px solid rgba(239, 68, 68, 0.35);
+  border-radius: 0.875rem;
+  padding: 1rem 1.25rem;
+  color: #fca5a5;
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.diagnosis-alt-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-top: 0.5rem;
+}
+
+.diagnosis-alt-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.775rem;
+  padding: 0.3rem 0.6rem;
+  background: #070c14;
+  border-radius: 0.375rem;
+  border: 1px solid #162438;
+}
