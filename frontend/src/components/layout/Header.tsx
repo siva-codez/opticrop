@@ -1,11 +1,12 @@
 import React from 'react';
-import { Bell, Search, Menu } from 'lucide-react';
+import { Bell, Search, Menu, X } from 'lucide-react';
 
 interface HeaderProps {
   onMenuClick?: () => void;
+  isMobileMenuOpen?: boolean;
 }
 
-export function Header({ onMenuClick }: HeaderProps) {
+export function Header({ onMenuClick, isMobileMenuOpen }: HeaderProps) {
   const getGreeting = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'Good morning';
@@ -18,10 +19,12 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center gap-4">
         {onMenuClick && (
           <button 
-            className="md:hidden p-2 -ml-2 text-muted hover:bg-[#0c1524] rounded-lg focus:outline-none"
+            className="md:hidden p-2 -ml-2 text-slate-400 hover:text-white hover:bg-[#0c1524] rounded-lg focus:outline-none cursor-pointer transition-colors"
             onClick={onMenuClick}
+            aria-label={isMobileMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+            aria-expanded={isMobileMenuOpen}
           >
-            <Menu size={22} />
+            {isMobileMenuOpen ? <X size={22} className="text-emerald-400" /> : <Menu size={22} />}
           </button>
         )}
         <div className="hidden md:block">
