@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Button, Input, Select, Badge, Spinner } from '../components/ui';
+import { Badge } from '../components/ui';
 import PageWrapper from '../components/layout/PageWrapper';
 import {
   FlaskConical,
@@ -13,12 +13,126 @@ import {
   Gauge,
   Scale,
   CheckCircle2,
+  AlertCircle,
   Info,
-  ChevronRight,
-  TrendingUp
+  ChevronDown,
+  RotateCcw,
+  TrendingUp,
 } from 'lucide-react';
 import { getFertilizerPrediction } from '../api/fertilizer';
 import type { FertilizerPredictionResponse } from '../types/fertilizer';
+
+const CROP_OPTIONS = [
+  { value: 'Barley', label: 'Barley 🌾' },
+  { value: 'Cotton', label: 'Cotton 🧶' },
+  { value: 'Ground Nuts', label: 'Ground Nuts 🥜' },
+  { value: 'Maize', label: 'Maize 🌽' },
+  { value: 'Millets', label: 'Millets 🌾' },
+  { value: 'Oil seeds', label: 'Oil seeds 🌻' },
+  { value: 'Paddy', label: 'Paddy (Rice) 🌾' },
+  { value: 'Pulses', label: 'Pulses 🫘' },
+  { value: 'Sugarcane', label: 'Sugarcane 🎋' },
+  { value: 'Tobacco', label: 'Tobacco 🍃' },
+  { value: 'Wheat', label: 'Wheat 🌾' },
+];
+
+const SOIL_OPTIONS = [
+  { value: 'Black', label: 'Black Soil 🟤' },
+  { value: 'Clayey', label: 'Clayey Soil 🧱' },
+  { value: 'Loamy', label: 'Loamy Soil 🪴' },
+  { value: 'Red', label: 'Red Soil 🔴' },
+  { value: 'Sandy', label: 'Sandy Soil 🏖️' },
+];
+
+function FormField({
+  label,
+  name,
+  type = 'number',
+  placeholder,
+  value,
+  onChange,
+  required,
+  unit,
+  icon,
+  hint,
+}: {
+  label: string;
+  name: string;
+  type?: string;
+  placeholder?: string;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  required?: boolean;
+  unit?: string;
+  icon?: React.ReactNode;
+  hint?: string;
+}) {
+  return (
+    <div className="crop-field-group">
+      <label htmlFor={`field-${name}`} className="crop-field-label">
+        {icon && <span className="crop-field-icon">{icon}</span>}
+        {label}
+        {unit && <span className="crop-field-unit">{unit}</span>}
+      </label>
+      <input
+        id={`field-${name}`}
+        type={type}
+        name={name}
+        placeholder={placeholder}
+        value={value}
+        onChange={onChange}
+        required={required}
+        step="any"
+        className="crop-input"
+      />
+      {hint && <p className="crop-field-hint">{hint}</p>}
+    </div>
+  );
+}
+
+function SelectField({
+  label,
+  name,
+  icon,
+  value,
+  onChange,
+  required,
+  options,
+}: {
+  label: string;
+  name: string;
+  icon: React.ReactNode;
+  value: string;
+  onChange: (e: React.ChangeEvent<HTMLSelectElement>) => void;
+  required?: boolean;
+  options: { value: string; label: string }[];
+}) {
+  return (
+    <div className="crop-field-group">
+      <label htmlFor={`field-${name}`} className="crop-field-label">
+        <span className="crop-field-icon">{icon}</span>
+        {label}
+      </label>
+      <div className="crop-select-wrap">
+        <select
+          id={`field-${name}`}
+          name={name}
+          value={value}
+          onChange={onChange}
+          required={required}
+          className="crop-select"
+        >
+          {options.map((opt) => (
+            <option key={opt.value} value={opt.value}>
+              {opt.label}
+            </option>
+          ))}
+        </select>
+        <ChevronDown size={16} className="crop-select-chevron" />
+      </div>
+    </div>
+  );
+}
 
 export default function Fertilizer() {
   const [loading, setLoading] = useState(false);
@@ -117,6 +231,27 @@ export default function Fertilizer() {
 
   const handleApplyPreset = (presetData: typeof formData) => {
     setFormData(presetData);
+    setError(null);
+  };
+
+  const handleAutoFill = () => {
+    handleApplyPreset(samplePresets[0].data);
+  };
+
+  const handleReset = () => {
+    setFormData({
+      temperature: '',
+      humidity: '',
+      moisture: '',
+      soil_type: 'Sandy',
+      crop_type: 'Maize',
+      nitrogen: '',
+      phosphorous: '',
+      potassium: '',
+      land_area_acres: '1.0'
+    });
+    setResult(null);
+    setError(null);
   };
 
   const handleRecommend = async (e: React.FormEvent) => {
@@ -152,366 +287,467 @@ export default function Fertilizer() {
       title="Fertilizer Recommendation"
       subtitle="AI-driven nutrient advisor predicting optimal chemical formulations, precise dosage per acre, and organic alternatives."
     >
-      <div className="flex flex-col lg:flex-row gap-6 animate-fade-in -mt-4">
-        {/* Form Section */}
-        <div className="w-full lg:w-5/12">
-          <div className="bg-[#0c1524] border border-emerald-500/35 rounded-2xl p-5 md:p-6 shadow-md h-full flex flex-col justify-between">
-            <div>
-              <div className="flex items-center justify-between mb-4 pb-3 border-b border-[#162438]">
-                <h2 className="text-sm font-bold text-white flex items-center gap-2">
-                  <FlaskConical className="w-4 h-4 text-emerald-400" /> Soil & Field Parameters
-                </h2>
-                <span className="text-[11px] text-slate-400 font-mono">ML v1.0</span>
+      <div className="crop-prediction-root">
+        {/* ── Left Panel: Form ── */}
+        <div className="crop-form-panel">
+          <div className="crop-card">
+            {/* Card Header */}
+            <div className="crop-card-header">
+              <div className="crop-card-header-icon">
+                <FlaskConical size={20} className="text-white" />
               </div>
-
-              {/* Quick Sample Presets */}
-              <div className="mb-4">
-                <label className="block text-[11px] font-semibold text-slate-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                  <Sparkles size={12} className="text-amber-400" /> Quick Autofill Presets
-                </label>
-                <div className="flex flex-wrap gap-1.5">
-                  {samplePresets.map((preset, idx) => (
-                    <button
-                      key={idx}
-                      type="button"
-                      onClick={() => handleApplyPreset(preset.data)}
-                      className="text-[11px] bg-[#070c14] hover:bg-emerald-950/40 text-slate-300 hover:text-emerald-300 border border-[#162438] hover:border-emerald-500/50 px-2.5 py-1 rounded-lg transition-all"
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
+              <div>
+                <h2 className="crop-card-title">Soil &amp; Field Parameters</h2>
+                <p className="crop-card-subtitle">Enter accurate values for best fertilizer recommendation</p>
               </div>
+              <button
+                type="button"
+                onClick={handleAutoFill}
+                className="crop-autofill-btn"
+                title="Fill with sample data"
+              >
+                <Sparkles size={14} />
+                Sample Data
+              </button>
+            </div>
 
-              <form onSubmit={handleRecommend} className="space-y-4">
-                {/* Crop & Soil Classification */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Target Crop</label>
-                    <Select name="crop_type" value={formData.crop_type} onChange={handleChange} required>
-                      <option value="Barley">Barley 🌾</option>
-                      <option value="Cotton">Cotton 🧶</option>
-                      <option value="Ground Nuts">Ground Nuts 🥜</option>
-                      <option value="Maize">Maize 🌽</option>
-                      <option value="Millets">Millets 🌾</option>
-                      <option value="Oil seeds">Oil seeds 🌻</option>
-                      <option value="Paddy">Paddy (Rice) 🌾</option>
-                      <option value="Pulses">Pulses 🫘</option>
-                      <option value="Sugarcane">Sugarcane 🎋</option>
-                      <option value="Tobacco">Tobacco 🍃</option>
-                      <option value="Wheat">Wheat 🌾</option>
-                    </Select>
-                  </div>
+            {/* Quick Autofill Presets Row */}
+            <div className="px-6 py-3 border-b border-[#162438]/70 bg-[#070c14]/50">
+              <div className="flex items-center gap-1.5 flex-wrap">
+                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider flex items-center gap-1 mr-1">
+                  <Sparkles size={11} className="text-amber-400" /> Presets:
+                </span>
+                {samplePresets.map((preset, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    onClick={() => handleApplyPreset(preset.data)}
+                    className={`text-[11px] px-2.5 py-1 rounded-lg border transition-all ${
+                      formData.crop_type === preset.data.crop_type && formData.soil_type === preset.data.soil_type
+                        ? 'bg-emerald-500/20 text-emerald-300 border-emerald-500/50 shadow-[0_0_8px_rgba(34,197,94,0.2)] font-medium'
+                        : 'bg-[#070c14] text-slate-400 border-[#162438] hover:border-emerald-500/40 hover:text-white'
+                    }`}
+                  >
+                    {preset.label}
+                  </button>
+                ))}
+              </div>
+            </div>
 
-                  <div>
-                    <label className="block text-xs font-semibold text-slate-300 mb-1.5">Soil Type</label>
-                    <Select name="soil_type" value={formData.soil_type} onChange={handleChange} required>
-                      <option value="Black">Black Soil 🟤</option>
-                      <option value="Clayey">Clayey Soil 🧱</option>
-                      <option value="Loamy">Loamy Soil 🪴</option>
-                      <option value="Red">Red Soil 🔴</option>
-                      <option value="Sandy">Sandy Soil 🏖️</option>
-                    </Select>
-                  </div>
+            <form onSubmit={handleRecommend} className="crop-form-body">
+              {/* NPK Section */}
+              <div className="crop-section">
+                <div className="crop-section-label">
+                  <span className="crop-section-dot" style={{ background: '#22c55e' }} />
+                  Soil Nutrients (NPK)
                 </div>
-
-                {/* Environmental Conditions */}
-                <div className="pt-2 border-t border-[#162438]">
-                  <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-2 flex items-center gap-1.5">
-                    <Droplets size={13} /> Weather & Soil Moisture
-                  </p>
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <Input
-                      label="Temp (°C)"
-                      type="number"
-                      step="0.1"
-                      name="temperature"
-                      value={formData.temperature}
-                      onChange={handleChange}
-                      placeholder="26"
-                      required
-                      className="text-center"
-                    />
-                    <Input
-                      label="Humidity (%)"
-                      type="number"
-                      step="0.1"
-                      name="humidity"
-                      value={formData.humidity}
-                      onChange={handleChange}
-                      placeholder="52"
-                      required
-                      className="text-center"
-                    />
-                    <Input
-                      label="Moisture (%)"
-                      type="number"
-                      step="0.1"
-                      name="moisture"
-                      value={formData.moisture}
-                      onChange={handleChange}
-                      placeholder="38"
-                      required
-                      className="text-center"
-                    />
-                  </div>
-                </div>
-
-                {/* Soil NPK Levels */}
-                <div className="pt-2 border-t border-[#162438]">
-                  <div className="flex justify-between items-center mb-2">
-                    <p className="text-xs font-bold text-emerald-400 uppercase tracking-wider">
-                      Soil Nutrients (N - P - K)
-                    </p>
-                    <span className="text-[10px] text-slate-400">mg/kg or ppm</span>
-                  </div>
-                  <div className="grid grid-cols-3 gap-2.5">
-                    <Input
-                      label="Nitrogen (N)"
-                      type="number"
-                      step="0.1"
-                      name="nitrogen"
-                      value={formData.nitrogen}
-                      onChange={handleChange}
-                      placeholder="37"
-                      required
-                      className="text-center"
-                    />
-                    <Input
-                      label="Phosphorous (P)"
-                      type="number"
-                      step="0.1"
-                      name="phosphorous"
-                      value={formData.phosphorous}
-                      onChange={handleChange}
-                      placeholder="0"
-                      required
-                      className="text-center"
-                    />
-                    <Input
-                      label="Potassium (K)"
-                      type="number"
-                      step="0.1"
-                      name="potassium"
-                      value={formData.potassium}
-                      onChange={handleChange}
-                      placeholder="0"
-                      required
-                      className="text-center"
-                    />
-                  </div>
-                </div>
-
-                {/* Land Area */}
-                <div className="pt-2 border-t border-[#162438]">
-                  <Input
-                    label="Farm Land Area (Acres)"
-                    type="number"
-                    step="0.1"
-                    min="0.1"
-                    name="land_area_acres"
-                    value={formData.land_area_acres}
+                <div className="crop-grid-3">
+                  <FormField
+                    label="Nitrogen"
+                    name="nitrogen"
+                    placeholder="37"
+                    unit="mg/kg"
+                    icon={<span className="font-bold text-xs">N</span>}
+                    hint="Range: 0–140"
+                    value={formData.nitrogen}
                     onChange={handleChange}
-                    placeholder="1.0"
+                    required
+                  />
+                  <FormField
+                    label="Phosphorus"
+                    name="phosphorous"
+                    placeholder="0"
+                    unit="mg/kg"
+                    icon={<span className="font-bold text-xs">P</span>}
+                    hint="Range: 0–145"
+                    value={formData.phosphorous}
+                    onChange={handleChange}
+                    required
+                  />
+                  <FormField
+                    label="Potassium"
+                    name="potassium"
+                    placeholder="0"
+                    unit="mg/kg"
+                    icon={<span className="font-bold text-xs">K</span>}
+                    hint="Range: 0–205"
+                    value={formData.potassium}
+                    onChange={handleChange}
                     required
                   />
                 </div>
+              </div>
 
-                {error && (
-                  <div className="p-3 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300">
-                    {error}
-                  </div>
-                )}
-
-                <div className="pt-2">
-                  <Button type="submit" fullWidth disabled={loading} size="lg">
-                    {loading ? <Spinner className="w-5 h-5 mx-auto text-white" /> : "Recommend Fertilizer →"}
-                  </Button>
+              {/* Environmental Conditions Section */}
+              <div className="crop-section">
+                <div className="crop-section-label">
+                  <span className="crop-section-dot" style={{ background: '#3b82f6' }} />
+                  Environmental Conditions &amp; Moisture
                 </div>
-              </form>
-            </div>
+                <div className="crop-grid-3">
+                  <FormField
+                    label="Temperature"
+                    name="temperature"
+                    placeholder="26"
+                    unit="°C"
+                    icon={<Thermometer size={13} />}
+                    hint="Range: 8–44°C"
+                    value={formData.temperature}
+                    onChange={handleChange}
+                    required
+                  />
+                  <FormField
+                    label="Humidity"
+                    name="humidity"
+                    placeholder="52"
+                    unit="%"
+                    icon={<Droplets size={13} />}
+                    hint="Range: 14–100%"
+                    value={formData.humidity}
+                    onChange={handleChange}
+                    required
+                  />
+                  <FormField
+                    label="Soil Moisture"
+                    name="moisture"
+                    placeholder="38"
+                    unit="%"
+                    icon={<Gauge size={13} />}
+                    hint="Range: 10–90%"
+                    value={formData.moisture}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {/* Crop & Soil Section */}
+              <div className="crop-section">
+                <div className="crop-section-label">
+                  <span className="crop-section-dot" style={{ background: '#f59e0b' }} />
+                  Crop &amp; Soil Classification
+                </div>
+                <div className="crop-grid-2">
+                  <SelectField
+                    label="Target Crop"
+                    name="crop_type"
+                    icon={<Leaf size={13} />}
+                    value={formData.crop_type}
+                    onChange={handleChange}
+                    required
+                    options={CROP_OPTIONS}
+                  />
+                  <SelectField
+                    label="Soil Type"
+                    name="soil_type"
+                    icon={<Layers size={13} />}
+                    value={formData.soil_type}
+                    onChange={handleChange}
+                    required
+                    options={SOIL_OPTIONS}
+                  />
+                </div>
+              </div>
+
+              {/* Land Area Section */}
+              <div className="crop-section">
+                <div className="crop-section-label">
+                  <span className="crop-section-dot" style={{ background: '#10b981' }} />
+                  Farm Land Specification
+                </div>
+                <div className="crop-grid-1-half">
+                  <FormField
+                    label="Farm Land Area"
+                    name="land_area_acres"
+                    placeholder="1.0"
+                    unit="Acres"
+                    icon={<Scale size={13} />}
+                    hint="For total dosage calculation"
+                    value={formData.land_area_acres}
+                    onChange={handleChange}
+                    required
+                  />
+                </div>
+              </div>
+
+              {error && (
+                <div className="p-3.5 bg-red-500/10 border border-red-500/30 rounded-xl text-xs text-red-300">
+                  {error}
+                </div>
+              )}
+
+              {/* Actions */}
+              <div className="crop-actions">
+                <button type="submit" className="crop-predict-btn" disabled={loading}>
+                  {loading ? (
+                    <>
+                      <span className="crop-spinner" />
+                      Analyzing Formulation...
+                    </>
+                  ) : (
+                    <>
+                      <FlaskConical size={17} />
+                      Recommend Fertilizer
+                    </>
+                  )}
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="crop-reset-btn"
+                >
+                  <RotateCcw size={15} />
+                  Reset
+                </button>
+              </div>
+            </form>
           </div>
         </div>
 
-        {/* Results Section */}
-        <div className="w-full lg:w-7/12">
-          {!result && !loading && (
-            <div className="h-full min-h-[460px] p-8 rounded-2xl bg-[#0c1524] border border-[#162438] border-dashed flex flex-col items-center justify-center text-center">
-              <div className="w-16 h-16 rounded-full bg-emerald-500/10 border border-emerald-500/20 flex items-center justify-center text-emerald-400 mb-3">
-                <FlaskConical className="w-8 h-8" />
+        {/* ── Right Panel: Results ── */}
+        <div className="crop-results-panel">
+          <div className="crop-card h-full">
+            <div className="crop-card-header">
+              <div className="crop-card-header-icon crop-card-header-icon--results">
+                <FlaskConical size={20} className="text-white" />
               </div>
-              <h3 className="text-base font-bold text-white">Ready to Predict Optimal Fertilizer</h3>
-              <p className="text-xs text-slate-400 max-w-md mt-2 leading-relaxed">
-                Provide your soil NPK test scores, environmental parameters, and crop type or select a sample preset on the left to compute ML-driven fertilizer dosage and split schedule.
-              </p>
-              <div className="mt-5 flex flex-wrap justify-center gap-2">
-                <span className="text-[11px] bg-[#070c14] border border-[#162438] text-slate-400 px-3 py-1 rounded-full flex items-center gap-1">
-                  <Layers size={11} className="text-emerald-400" /> 7 Fertilizer Classes Supported
-                </span>
-                <span className="text-[11px] bg-[#070c14] border border-[#162438] text-slate-400 px-3 py-1 rounded-full flex items-center gap-1">
-                  <Scale size={11} className="text-sky-400" /> Precision Dosage Calculator
-                </span>
-              </div>
-            </div>
-          )}
-
-          {loading && (
-            <div className="h-full min-h-[460px] p-8 rounded-2xl bg-[#0c1524] border border-[#162438] flex flex-col items-center justify-center text-center space-y-4">
-              <div className="w-12 h-12 rounded-full border-3 border-emerald-500/20 border-t-emerald-400 animate-spin" />
               <div>
-                <p className="text-sm font-bold text-white">Running Random Forest Classifier...</p>
-                <p className="text-xs text-slate-400 mt-1">Evaluating soil chemistry and crop nutrient uptake curves</p>
+                <h2 className="crop-card-title">Recommendation Results</h2>
+                <p className="crop-card-subtitle">AI-powered nutrient dosage &amp; formulation</p>
               </div>
             </div>
-          )}
 
-          {result && !loading && (
-            <div className="space-y-5 animate-fade-in">
-              {/* Primary Recommendation Banner */}
-              <div className="bg-[#0c1524] border border-emerald-500/40 rounded-2xl p-5 md:p-6 shadow-lg relative overflow-hidden">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-[#162438]">
+            <div className="crop-results-body">
+              {!result && !loading && (
+                <div className="crop-empty-state">
+                  <div className="crop-empty-icon">
+                    <FlaskConical size={36} className="text-emerald-400" />
+                  </div>
+                  <h3 className="crop-empty-title">Ready to Recommend</h3>
+                  <p className="crop-empty-desc">
+                    Fill in your soil parameters, environmental data, and target crop on the left, then click{' '}
+                    <strong>Recommend Fertilizer</strong> to generate precision dosage and application schedule.
+                  </p>
+                  <div className="crop-tip-list">
+                    <div className="crop-tip">
+                      <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <span>Enter accurate NPK values from a soil test</span>
+                    </div>
+                    <div className="crop-tip">
+                      <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <span>Match your specific soil type and target crop</span>
+                    </div>
+                    <div className="crop-tip">
+                      <CheckCircle2 size={14} className="text-emerald-400 flex-shrink-0 mt-0.5" />
+                      <span>Specify farm acreage for total kg dosage calculation</span>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {loading && (
+                <div className="crop-empty-state space-y-4">
+                  <div className="w-12 h-12 rounded-full border-3 border-emerald-500/20 border-t-emerald-400 animate-spin" />
                   <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-[11px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/30">
-                        Top Recommendation
-                      </span>
-                      <span className="text-xs text-slate-400">NPK Grade: {result.npk_ratio}</span>
-                    </div>
-                    <h2 className="text-2xl font-black text-white flex items-center gap-3">
-                      {result.fertilizer_name}
-                      <Badge variant="success">{(result.confidence * 100).toFixed(0)}% Match</Badge>
-                    </h2>
-                    <p className="text-xs text-slate-400 mt-0.5">{result.category}</p>
-                  </div>
-
-                  <div className="bg-[#070c14] border border-[#162438] px-4 py-2.5 rounded-xl text-right sm:text-right self-start sm:self-auto">
-                    <p className="text-[10px] uppercase font-bold text-slate-400">Total Required for {result.land_area_acres} Acres</p>
-                    <p className="text-xl font-black text-emerald-400 mt-0.5">{result.total_recommended_kg} kg</p>
-                  </div>
-                </div>
-
-                {/* Dosage Metrics */}
-                <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 my-4">
-                  <div className="p-3 bg-[#070c14] rounded-xl border border-[#162438]">
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase">Per Acre Dosage</p>
-                    <p className="text-base font-bold text-sky-400 mt-0.5">{result.dosage_kg_per_acre} kg/acre</p>
-                  </div>
-                  <div className="p-3 bg-[#070c14] rounded-xl border border-[#162438]">
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase">Per Hectare Dosage</p>
-                    <p className="text-base font-bold text-purple-400 mt-0.5">{result.dosage_kg_per_hectare} kg/ha</p>
-                  </div>
-                  <div className="p-3 bg-[#070c14] rounded-xl border border-[#162438] col-span-2 sm:col-span-1">
-                    <p className="text-[10px] text-slate-400 font-semibold uppercase">Best Timing</p>
-                    <p className="text-xs font-semibold text-emerald-400 mt-0.5 truncate">{result.application_timing}</p>
-                  </div>
-                </div>
-
-                {/* Soil Insight */}
-                <div className="p-3.5 rounded-xl bg-emerald-950/20 border border-emerald-500/20 text-xs text-emerald-200/90 leading-relaxed flex items-start gap-2.5">
-                  <Info className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
-                  <span>{result.soil_insights}</span>
-                </div>
-              </div>
-
-              {/* Split Application Schedule */}
-              <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-5 md:p-6 shadow-md">
-                <h3 className="text-sm font-bold text-white mb-3.5 flex items-center gap-2">
-                  <Clock className="w-4 h-4 text-emerald-400" /> Split-Dose Application Schedule
-                </h3>
-                <div className="space-y-3">
-                  {result.split_schedule.map((step, idx) => (
-                    <div key={idx} className="p-3.5 rounded-xl bg-[#070c14] border border-[#162438] flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                      <div className="flex items-start gap-3">
-                        <span className="w-6 h-6 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
-                          {idx + 1}
-                        </span>
-                        <div>
-                          <p className="text-xs font-bold text-white">{step.phase}</p>
-                          <p className="text-[11px] text-slate-400 mt-0.5">{step.action}</p>
-                        </div>
-                      </div>
-                      <div className="sm:text-right shrink-0">
-                        <span className="text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20">
-                          {step.amount_kg} kg ({step.percentage})
-                        </span>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              {/* Benefits & Safety Guidelines */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-5 shadow-md">
-                  <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <TrendingUp size={14} /> Key Agronomic Benefits
-                  </h4>
-                  <ul className="space-y-2">
-                    {result.key_benefits.map((benefit, i) => (
-                      <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
-                        <CheckCircle2 size={13} className="text-emerald-400 shrink-0 mt-0.5" />
-                        <span>{benefit}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-5 shadow-md">
-                  <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <ShieldAlert size={14} /> Application Precautions
-                  </h4>
-                  <ul className="space-y-2">
-                    {result.precautions.map((prec, i) => (
-                      <li key={i} className="text-xs text-slate-300 flex items-start gap-2">
-                        <span className="text-amber-400 shrink-0 font-bold">•</span>
-                        <span>{prec}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-
-              {/* Organic Alternatives */}
-              {result.organic_alternatives && result.organic_alternatives.length > 0 && (
-                <div className="bg-[#0c1524] border border-emerald-500/30 rounded-2xl p-5 md:p-6 shadow-md">
-                  <h3 className="text-sm font-bold text-white mb-3.5 flex items-center gap-2">
-                    <Leaf className="w-4 h-4 text-emerald-400" /> Verified Organic Alternatives
-                  </h3>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {result.organic_alternatives.map((org, idx) => (
-                      <div key={idx} className="p-3.5 rounded-xl bg-[#070c14] border border-[#162438]">
-                        <p className="text-xs font-bold text-emerald-300 mb-1">{org.name}</p>
-                        <p className="text-[11px] font-mono text-amber-400 mb-1.5">Rate: {org.rate}</p>
-                        <p className="text-[11px] text-slate-400 leading-snug">{org.desc}</p>
-                      </div>
-                    ))}
+                    <p className="text-sm font-bold text-white">Running Random Forest Classifier...</p>
+                    <p className="text-xs text-slate-400 mt-1">Evaluating soil chemistry and crop nutrient uptake curves</p>
                   </div>
                 </div>
               )}
 
-              {/* Alternative Fertilizer Options */}
-              {result.top_alternatives && result.top_alternatives.length > 0 && (
-                <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-5 shadow-md">
-                  <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5">
-                    <Layers size={13} /> Secondary Fertilizer Options
-                  </h4>
-                  <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                    {result.top_alternatives.map((alt, idx) => (
-                      <div key={idx} className="p-3 rounded-xl bg-[#070c14] border border-[#162438] flex items-center justify-between">
-                        <div>
-                          <p className="text-xs font-bold text-white">{alt.fertilizer}</p>
-                          <p className="text-[10px] text-slate-400">Grade: {alt.npk_ratio}</p>
+              {result && !loading && (
+                <div className="space-y-4 animate-fade-in w-full">
+                  {/* Primary Recommendation Banner */}
+                  <div className="bg-gradient-to-b from-emerald-950/25 to-[#070c14] border border-emerald-500/40 rounded-2xl p-4 md:p-5 shadow-lg relative overflow-hidden">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3.5 border-b border-[#162438]">
+                      <div className="space-y-1">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold text-emerald-400 uppercase tracking-wider bg-emerald-500/15 px-2.5 py-0.5 rounded-full border border-emerald-500/30 flex items-center gap-1">
+                            <Sparkles size={11} /> Top Recommendation
+                          </span>
+                          <span className="text-[11px] font-medium text-slate-400 bg-[#0c1524] px-2 py-0.5 rounded-md border border-[#162438]">
+                            Grade: {result.npk_ratio}
+                          </span>
                         </div>
-                        <span className="text-[10px] font-bold text-slate-400 bg-slate-800/60 px-2 py-0.5 rounded border border-slate-700">
-                          {(alt.confidence * 100).toFixed(0)}%
+                        <div className="flex items-center gap-2.5 flex-wrap pt-0.5">
+                          <h3 className="text-2xl font-black text-white tracking-tight">
+                            {result.fertilizer_name}
+                          </h3>
+                          <Badge variant="success">{(result.confidence * 100).toFixed(0)}% Match</Badge>
+                        </div>
+                        <p className="text-xs text-slate-400 flex items-center gap-1.5">
+                          <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 shadow-[0_0_6px_#4ade80]" />
+                          {result.category}
+                        </p>
+                      </div>
+
+                      <div className="bg-[#0c1524] border border-emerald-500/30 px-4 py-2.5 rounded-xl self-start sm:self-center flex flex-col justify-center min-w-[170px] shadow-sm">
+                        <span className="text-[10px] uppercase font-bold text-slate-400 tracking-wider">
+                          Total for {result.land_area_acres} Acres
+                        </span>
+                        <div className="flex items-baseline gap-1 mt-0.5">
+                          <span className="text-2xl font-black text-emerald-400 tracking-tight leading-none">
+                            {result.total_recommended_kg}
+                          </span>
+                          <span className="text-xs font-semibold text-slate-400">kg</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Dosage Metrics Grid */}
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 my-3.5">
+                      <div className="p-3 bg-[#0c1524] rounded-xl border border-[#162438] flex flex-col justify-between">
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <Scale size={11} className="text-sky-400" /> Per Acre Dosage
+                        </span>
+                        <p className="text-base font-bold text-sky-400 mt-1">{result.dosage_kg_per_acre} kg/ac</p>
+                      </div>
+                      <div className="p-3 bg-[#0c1524] rounded-xl border border-[#162438] flex flex-col justify-between">
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <Layers size={11} className="text-purple-400" /> Per Hectare Dosage
+                        </span>
+                        <p className="text-base font-bold text-purple-400 mt-1">{result.dosage_kg_per_hectare} kg/ha</p>
+                      </div>
+                      <div className="p-3 bg-[#0c1524] rounded-xl border border-[#162438] flex flex-col justify-between">
+                        <span className="text-[10px] text-slate-400 font-semibold uppercase tracking-wider flex items-center gap-1">
+                          <Clock size={11} className="text-emerald-400" /> Best Application Timing
+                        </span>
+                        <p className="text-xs font-medium text-emerald-300 mt-1 leading-snug">{result.application_timing}</p>
+                      </div>
+                    </div>
+
+                    {/* Soil Insight */}
+                    <div className="p-3 rounded-xl bg-emerald-950/20 border border-emerald-500/25 text-xs text-emerald-200/90 leading-relaxed flex items-start gap-2.5">
+                      <Info className="w-4 h-4 text-emerald-400 shrink-0 mt-0.5" />
+                      <span>{result.soil_insights}</span>
+                    </div>
+                  </div>
+
+                  {/* Split Application Schedule */}
+                  <div className="bg-[#070c14] border border-[#162438] rounded-2xl p-4 md:p-5 shadow-md">
+                    <div className="flex items-center justify-between mb-3 pb-2.5 border-b border-[#162438]/80">
+                      <h4 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+                        <Clock className="w-3.5 h-3.5 text-emerald-400" /> Split-Dose Application Schedule
+                      </h4>
+                      <span className="text-[10px] text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full font-semibold">
+                        {result.split_schedule.length} Stages
+                      </span>
+                    </div>
+                    <div className="space-y-2.5">
+                      {result.split_schedule.map((step, idx) => (
+                        <div key={idx} className="p-3 rounded-xl bg-[#0c1524] border border-[#162438] flex flex-col sm:flex-row sm:items-center justify-between gap-3 hover:border-emerald-500/30 transition-all">
+                          <div className="flex items-start gap-3">
+                            <span className="w-6 h-6 rounded-lg bg-emerald-500/15 border border-emerald-500/40 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0 mt-0.5">
+                              {idx + 1}
+                            </span>
+                            <div>
+                              <p className="text-xs font-bold text-white">{step.phase}</p>
+                              <p className="text-[11px] text-slate-400 mt-0.5 leading-relaxed">{step.action}</p>
+                            </div>
+                          </div>
+                          <div className="sm:text-right shrink-0 self-start sm:self-center">
+                            <span className="inline-block text-xs font-mono font-bold text-emerald-400 bg-emerald-500/10 px-2.5 py-1 rounded-lg border border-emerald-500/20 whitespace-nowrap">
+                              {step.amount_kg} kg ({step.percentage})
+                            </span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+
+                  {/* Benefits & Safety Guidelines */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5 items-stretch">
+                    <div className="bg-[#070c14] border border-[#162438] rounded-2xl p-4 md:p-5 shadow-md flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-[#162438]/80">
+                          <TrendingUp size={13} /> Key Agronomic Benefits
+                        </h4>
+                        <ul className="space-y-2.5">
+                          {result.key_benefits.map((benefit, i) => (
+                            <li key={i} className="text-xs text-slate-300 flex items-start gap-2 leading-relaxed">
+                              <CheckCircle2 size={13} className="text-emerald-400 shrink-0 mt-0.5" />
+                              <span>{benefit}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    <div className="bg-[#070c14] border border-[#162438] rounded-2xl p-4 md:p-5 shadow-md flex flex-col justify-between">
+                      <div>
+                        <h4 className="text-xs font-bold text-amber-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-[#162438]/80">
+                          <ShieldAlert size={13} /> Application Precautions
+                        </h4>
+                        <ul className="space-y-2.5">
+                          {result.precautions.map((prec, i) => (
+                            <li key={i} className="text-xs text-slate-300 flex items-start gap-2 leading-relaxed">
+                              <AlertCircle size={13} className="text-amber-400 shrink-0 mt-0.5" />
+                              <span>{prec}</span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Organic Alternatives */}
+                  {result.organic_alternatives && result.organic_alternatives.length > 0 && (
+                    <div className="bg-[#070c14] border border-emerald-500/30 rounded-2xl p-4 md:p-5 shadow-md">
+                      <div className="flex items-center justify-between mb-3 pb-2 border-b border-[#162438]/80">
+                        <h4 className="text-xs font-bold text-white flex items-center gap-2 uppercase tracking-wider">
+                          <Leaf className="w-3.5 h-3.5 text-emerald-400" /> Verified Organic Alternatives
+                        </h4>
+                        <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                          Eco-friendly
                         </span>
                       </div>
-                    ))}
-                  </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                        {result.organic_alternatives.map((org, idx) => (
+                          <div key={idx} className="p-3.5 rounded-xl bg-[#0c1524] border border-[#162438] flex flex-col justify-between h-full hover:border-emerald-500/30 transition-all">
+                            <div>
+                              <p className="text-xs font-bold text-emerald-300 flex items-center gap-1.5">
+                                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                                {org.name}
+                              </p>
+                              <p className="text-[11px] text-slate-400 leading-relaxed mt-2">{org.desc}</p>
+                            </div>
+                            <div className="mt-3 pt-2 border-t border-[#162438]/60">
+                              <span className="text-[10px] font-mono font-medium text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded border border-amber-500/20 inline-block">
+                                Rate: {org.rate}
+                              </span>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Alternative Fertilizer Options */}
+                  {result.top_alternatives && result.top_alternatives.length > 0 && (
+                    <div className="bg-[#070c14] border border-[#162438] rounded-2xl p-4 md:p-5 shadow-md">
+                      <h4 className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-3 flex items-center gap-1.5 pb-2 border-b border-[#162438]/80">
+                        <Layers size={13} /> Secondary Fertilizer Options
+                      </h4>
+                      <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5">
+                        {result.top_alternatives.map((alt, idx) => (
+                          <div key={idx} className="p-3 rounded-xl bg-[#0c1524] border border-[#162438] flex items-center justify-between gap-2 hover:border-slate-600 transition-all">
+                            <div className="min-w-0">
+                              <p className="text-xs font-bold text-white truncate">{alt.fertilizer}</p>
+                              <p className="text-[10px] text-slate-400 truncate">Grade: {alt.npk_ratio}</p>
+                            </div>
+                            <span className="text-[10px] font-bold text-slate-300 bg-slate-800/80 px-2 py-0.5 rounded-md border border-slate-700 shrink-0">
+                              {(alt.confidence * 100).toFixed(0)}%
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
+          </div>
         </div>
       </div>
     </PageWrapper>
