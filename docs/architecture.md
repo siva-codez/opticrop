@@ -58,7 +58,7 @@
 ### AI/ML
 - **Assistant**: OpenAI API (gpt-4o-mini, configurable)
 - **Crop Model**: scikit-learn + joblib
-- **Disease Model**: TensorFlow/Keras CNN
+- **Disease Model**: Vision Transformer (wambugu71/crop_leaf_diseases_vit via Hugging Face & PyTorch)
 - **Weather**: OpenWeatherMap API
 
 ## Design Patterns

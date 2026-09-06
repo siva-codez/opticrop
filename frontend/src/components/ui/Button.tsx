@@ -15,11 +15,11 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
     const baseStyles = 'inline-flex items-center justify-center rounded-xl font-semibold transition-all duration-200 focus:outline-none focus:ring-2 cursor-pointer';
     
     const variants = {
-      primary: 'bg-gradient-to-r from-emerald-600 to-emerald-500 hover:from-emerald-500 hover:to-emerald-400 text-white shadow-[0_0_15px_rgba(34,197,94,0.3)] hover:shadow-[0_0_20px_rgba(34,197,94,0.5)] focus:ring-emerald-500/40 active:scale-[0.98]',
-      secondary: 'bg-[#101d32] border border-emerald-500/40 text-emerald-300 hover:bg-[#162744] hover:border-emerald-400 focus:ring-emerald-500/30',
-      outline: 'border border-emerald-500/50 text-emerald-400 hover:bg-emerald-500/10 focus:ring-emerald-500/30',
-      ghost: 'text-slate-300 hover:text-white hover:bg-[#0c1524] focus:ring-slate-700',
-      danger: 'bg-red-600 hover:bg-red-500 text-white shadow-[0_0_15px_rgba(239,68,68,0.3)] focus:ring-red-500/30'
+      primary: 'bg-[#087F5B] hover:bg-[#065f44] text-white shadow-[0_4px_14px_rgba(8,127,91,0.25)] hover:shadow-[0_6px_20px_rgba(8,127,91,0.35)] focus:ring-[#087F5B]/30 active:scale-[0.98]',
+      secondary: 'bg-white border border-[#DDE9E3] text-[#14201B] hover:bg-[#F0F7F4] hover:border-[#087F5B] hover:text-[#087F5B] focus:ring-[#087F5B]/20',
+      outline: 'border border-[#087F5B] text-[#087F5B] hover:bg-[#E8F7F0] focus:ring-[#087F5B]/30',
+      ghost: 'text-[#66756E] hover:text-[#087F5B] hover:bg-[#F0F7F4] focus:ring-[#087F5B]/20',
+      danger: 'bg-red-600 hover:bg-red-700 text-white shadow-[0_4px_14px_rgba(239,68,68,0.25)] focus:ring-red-500/30'
     };
 
     const sizes = {

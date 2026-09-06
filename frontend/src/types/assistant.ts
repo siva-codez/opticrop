@@ -7,11 +7,16 @@ export interface ChatMessage {
 
 export interface ChatRequest {
   message: string;
+  language?: string;
   history?: ChatMessage[];
+  session_id?: number;
 }
 
 export interface ChatResponse {
-  reply: string;
+  response?: string;
+  reply?: string;
+  session_id?: number;
+  language?: string;
   suggestedQuestions?: string[];
 }
 

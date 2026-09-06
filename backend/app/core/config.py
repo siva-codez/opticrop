@@ -11,9 +11,12 @@ class Settings(BaseSettings):
     ACCESS_TOKEN_EXPIRE_MINUTES: int = 15
     REFRESH_TOKEN_EXPIRE_DAYS: int = 7
     
-    # OpenAI
+    # AI / LLM Chatbot
+    HF_TOKEN: str = ""
     OPENAI_API_KEY: str = ""
     OPENAI_MODEL: str = "gpt-4o-mini"
+    AI_BASE_URL: str = "https://router.huggingface.co/v1"
+    AI_MODEL: str = "Qwen/Qwen2.5-7B-Instruct:featherless-ai"
     
     # Weather
     WEATHER_API_KEY: str = ""
@@ -26,6 +29,10 @@ class Settings(BaseSettings):
     # File Storage
     UPLOAD_DIR: str = "./uploads"
     MAX_FILE_SIZE_MB: int = 10
+    
+    # Crop Disease Detection (Hugging Face / Vision Transformer Pipeline)
+    DISEASE_MODEL_NAME: str = "wambugu71/crop_leaf_diseases_vit"
+    USE_HF_DISEASE_PIPELINE: bool = True
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 

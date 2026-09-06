@@ -17,27 +17,33 @@ export default function Profile() {
   };
 
   return (
-    <PageWrapper title="Farmer Profile" subtitle="Manage your personal agronomic data, farm specifications, and security credentials.">
-      <div className="max-w-4xl space-y-6 animate-fade-in -mt-4">
+    <PageWrapper
+      title="Farmer Profile"
+      subtitle="Manage your personal agronomic data, farm specifications, and security credentials."
+      breadcrumbs={[{ label: 'Profile' }]}
+    >
+      <div className="max-w-4xl space-y-6 animate-fade-in">
         {/* Main Details Card */}
-        <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-6 md:p-8 shadow-md">
+        <div className="bg-white border border-[#DDE9E3] rounded-2xl p-6 md:p-8 shadow-xs">
           {/* Avatar Section */}
-          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-6 border-b border-[#162438]">
-            <div className="w-20 h-20 rounded-2xl bg-gradient-to-br from-emerald-500 to-emerald-700 border-2 border-emerald-400/50 flex items-center justify-center text-white text-2xl font-black shadow-[0_0_20px_rgba(34,197,94,0.3)]">
+          <div className="flex flex-col sm:flex-row items-center sm:items-start gap-6 mb-8 pb-6 border-b border-[#DDE9E3]">
+            <div className="w-20 h-20 rounded-2xl bg-[#087F5B] border-2 border-[#BDDECF] flex items-center justify-center text-white text-2xl font-black shadow-[0_4px_14px_rgba(8,127,91,0.2)]">
               JD
             </div>
             <div className="text-center sm:text-left">
-              <h2 className="text-xl font-bold text-white flex items-center justify-center sm:justify-start gap-2">
+              <h2 className="text-xl font-bold text-[#14201B] flex items-center justify-center sm:justify-start gap-2">
                 John Doe
-                <span className="text-[11px] font-semibold text-emerald-400 bg-emerald-500/15 border border-emerald-500/30 px-2 py-0.5 rounded-full">Verified Farmer</span>
+                <span className="text-[11px] font-semibold text-[#087F5B] bg-[#E8F7F0] border border-[#BDDECF] px-2.5 py-0.5 rounded-full">
+                  Verified Farmer
+                </span>
               </h2>
-              <p className="text-xs text-slate-400 mt-0.5 mb-3 font-mono">Member ID: #OPTI-84920 · Member since Jan 2026</p>
+              <p className="text-xs text-[#66756E] mt-0.5 mb-3 font-mono">Member ID: #OPTI-84920 · Member since Jan 2026</p>
               <Button variant="secondary" size="sm">Change Avatar</Button>
             </div>
           </div>
 
           {/* Personal Info */}
-          <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-4">Personal Information</h3>
+          <h3 className="text-xs font-bold text-[#087F5B] uppercase tracking-wider mb-4">Personal Information</h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
             <Input label="Full Name" defaultValue="John Doe" icon={<User className="w-4 h-4" />} />
             <Input label="Email Address" defaultValue="john.doe@opticrop.ai" disabled icon={<Mail className="w-4 h-4" />} />
@@ -46,7 +52,7 @@ export default function Profile() {
           </div>
 
           {/* Farm Details */}
-          <h3 className="text-xs font-bold text-emerald-400 uppercase tracking-wider mb-4 flex items-center gap-1.5">
+          <h3 className="text-xs font-bold text-[#087F5B] uppercase tracking-wider mb-4 flex items-center gap-1.5">
             <Sprout size={14} /> Farm Specifications
           </h3>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-8">
@@ -73,7 +79,7 @@ export default function Profile() {
             </div>
           </div>
 
-          <div className="flex justify-end pt-4 border-t border-[#162438]">
+          <div className="flex justify-end pt-4 border-t border-[#DDE9E3]">
             <Button variant="primary" size="md" onClick={handleSave} loading={loading} icon={saved ? <Check className="w-4 h-4" /> : <Save className="w-4 h-4" />}>
               {saved ? "Saved Successfully!" : "Save Profile Details"}
             </Button>
@@ -81,12 +87,15 @@ export default function Profile() {
         </div>
 
         {/* Security Card */}
-        <div className="bg-[#0c1524] border border-[#162438] rounded-2xl p-6 md:p-8 shadow-md">
-          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-[#162438]">
-            <div className="w-8 h-8 rounded-xl bg-emerald-500/15 border border-emerald-500/30 flex items-center justify-center text-emerald-400">
+        <div className="bg-white border border-[#DDE9E3] rounded-2xl p-6 md:p-8 shadow-xs">
+          <div className="flex items-center gap-3 mb-6 pb-3 border-b border-[#DDE9E3]">
+            <div className="w-9 h-9 rounded-xl bg-[#E8F7F0] border border-[#BDDECF] flex items-center justify-center text-[#087F5B]">
               <Shield className="w-4 h-4" />
             </div>
-            <h3 className="text-sm font-bold text-white">Security & Password</h3>
+            <div>
+              <h3 className="text-sm font-bold text-[#14201B]">Security & Password</h3>
+              <p className="text-xs text-[#66756E]">Manage your login credentials</p>
+            </div>
           </div>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">

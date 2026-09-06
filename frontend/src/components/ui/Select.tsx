@@ -17,15 +17,15 @@ interface SelectProps extends Omit<React.SelectHTMLAttributes<HTMLSelectElement>
 export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
   ({ className = '', label, error, helperText, options, children, ...props }, ref) => {
     
-    const baseSelectStyles = "w-full bg-[#070c14] border rounded-xl text-sm text-white transition-all duration-200 outline-none appearance-none px-4 py-2.5 pr-10 cursor-pointer";
+    const baseSelectStyles = "w-full bg-white border rounded-xl text-sm text-[#17201C] transition-all duration-200 outline-none appearance-none px-4 py-2.5 pr-10 cursor-pointer";
     
     const stateStyles = error 
       ? "border-red-500/70 focus:border-red-400 focus:ring-2 focus:ring-red-500/20" 
-      : "border-[#162438] focus:border-emerald-500/80 focus:ring-2 focus:ring-emerald-500/20 shadow-inner";
+      : "border-[#E5ECE8] focus:border-[#087F5B] focus:ring-2 focus:ring-[#087F5B]/20 shadow-xs";
  
     return (
       <div className="w-full flex flex-col">
-        {label && <label className="font-semibold text-xs text-slate-300 mb-1.5">{label}</label>}
+        {label && <label className="font-semibold text-xs text-[#2D3A34] mb-1.5">{label}</label>}
         
         <div className="relative">
           <select
@@ -34,7 +34,7 @@ export const Select = React.forwardRef<HTMLSelectElement, SelectProps>(
             {...props}
           >
             {options && options.map((opt) => (
-              <option key={opt.value} value={opt.value} className="bg-[#0c1524] text-white py-1">
+              <option key={opt.value} value={opt.value} className="bg-white text-[#17201C] py-1">
                 {opt.label}
               </option>
             ))}
