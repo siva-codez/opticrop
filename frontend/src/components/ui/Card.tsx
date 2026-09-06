@@ -20,9 +20,9 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
 
     const paddings = {
       none: '',
-      sm: 'p-4',
-      md: 'p-5 md:p-6',
-      lg: 'p-6 md:p-8'
+      sm: 'p-4 md:p-5',
+      md: 'p-6 md:p-7 space-y-4',
+      lg: 'p-7 md:p-9 space-y-5'
     };
 
     return (
@@ -39,4 +39,5 @@ export const Card = React.forwardRef<HTMLDivElement, CardProps>(
 );
 
 Card.displayName = 'Card';
+
 
