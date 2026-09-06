@@ -152,7 +152,7 @@ export function FloatingChatWidget() {
       const botMsg: Message = {
         id: (Date.now() + 1).toString(),
         role: 'assistant',
-        content: response.reply || "Here is your agricultural guidance.",
+        content: (typeof response === 'string' ? response : (response as any)?.reply) || "Here is your agricultural guidance.",
         timestamp: new Date()
       };
       setMessages(prev => [...prev, botMsg]);

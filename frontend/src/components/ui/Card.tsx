@@ -8,14 +8,14 @@ interface CardProps extends React.HTMLAttributes<HTMLDivElement> {
 export const Card = React.forwardRef<HTMLDivElement, CardProps>(
   ({ className = '', variant = 'default', padding = 'md', children, onClick, ...props }, ref) => {
     
-    const baseStyles = 'bg-[#0c1524] rounded-3xl transition-all duration-250';
+    const baseStyles = 'bg-white rounded-2xl transition-all duration-200 text-[#17201C]';
     
     const variants = {
-      default: 'border border-[#162438] shadow-sm',
-      elevated: 'shadow-xl border border-[#162438]',
-      bordered: 'border border-emerald-500/30',
-      interactive: 'border border-emerald-500/30 hover:border-emerald-400/70 hover:shadow-[0_0_25px_rgba(34,197,94,0.18)] hover:-translate-y-1 cursor-pointer',
-      neon: 'border border-emerald-500/40 shadow-[0_0_18px_rgba(34,197,94,0.12)] hover:border-emerald-400 hover:shadow-[0_0_30px_rgba(34,197,94,0.28)] hover:-translate-y-1 cursor-pointer',
+      default: 'border border-[#E5ECE8] shadow-sm',
+      elevated: 'shadow-md border border-[#E5ECE8]',
+      bordered: 'border border-[#087F5B]/30',
+      interactive: 'border border-[#E5ECE8] hover:border-[#087F5B]/50 hover:shadow-lg hover:-translate-y-0.5 cursor-pointer',
+      neon: 'border border-[#087F5B]/40 shadow-sm hover:border-[#087F5B] hover:shadow-md hover:-translate-y-0.5 cursor-pointer',
     };
 
     const paddings = {

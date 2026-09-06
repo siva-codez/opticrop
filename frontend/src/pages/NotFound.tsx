@@ -28,9 +28,9 @@ export default function NotFound() {
           variant="primary" 
           size="lg" 
           icon={<Home className="w-5 h-5" />}
-          onClick={() => navigate('/dashboard')}
+          onClick={() => navigate('/')}
         >
-          Go to Dashboard
+          Go to Home
         </Button>
       </div>
     </div>

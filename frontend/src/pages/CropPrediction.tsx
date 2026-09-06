@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router';
 import PageWrapper from '../components/layout/PageWrapper';
 import { predictCrop } from '../api/crop';
 import {
@@ -19,6 +20,7 @@ import {
   Star,
   Check,
   Info,
+  ArrowLeft,
 } from 'lucide-react';
 
 const SEASON_OPTIONS = [
@@ -297,8 +299,21 @@ export default function CropPrediction() {
 
   return (
     <PageWrapper
-      title="Crop Prediction"
-      subtitle="Discover the best crops for your specific soil and environment using AI analysis."
+      title="Find the Right Crop for Your Farm"
+      subtitle="Enter your soil and climate conditions to receive an AI-powered crop recommendation."
+      breadcrumbs={[
+        { label: 'Services', href: '/services' },
+        { label: 'Crop Recommendation' },
+      ]}
+      action={
+        <Link
+          to="/services"
+          className="inline-flex items-center gap-1.5 text-xs font-semibold text-emerald-700 hover:text-emerald-800 bg-emerald-50 hover:bg-emerald-100/70 px-3.5 py-2 rounded-xl border border-emerald-200/60 transition-colors"
+        >
+          <ArrowLeft size={13} />
+          <span>Back to Services</span>
+        </Link>
+      }
     >
       <div className="crop-prediction-root">
         {/* ── Left Panel: Form ── */}
@@ -306,12 +321,14 @@ export default function CropPrediction() {
           <div className="crop-card">
             {/* Card Header */}
             <div className="crop-card-header">
-              <div className="crop-card-header-icon">
-                <FlaskConical size={20} className="text-white" />
-              </div>
-              <div>
-                <h2 className="crop-card-title">Soil &amp; Environment Parameters</h2>
-                <p className="crop-card-subtitle">Enter accurate values for best prediction results</p>
+              <div className="crop-card-header-info">
+                <div className="crop-card-header-icon">
+                  <FlaskConical size={18} className="text-[#087F5B]" />
+                </div>
+                <div>
+                  <h2 className="crop-card-title">Soil &amp; Environment Parameters</h2>
+                  <p className="crop-card-subtitle">Enter accurate values for best prediction results</p>
+                </div>
               </div>
               <button
                 type="button"
@@ -538,12 +555,14 @@ export default function CropPrediction() {
         <div className="crop-results-panel">
           <div className="crop-card h-full">
             <div className="crop-card-header">
-              <div className="crop-card-header-icon crop-card-header-icon--results">
-                <BarChart3 size={20} className="text-white" />
-              </div>
-              <div>
-                <h2 className="crop-card-title">Prediction Results</h2>
-                <p className="crop-card-subtitle">AI-powered crop recommendations</p>
+              <div className="crop-card-header-info">
+                <div className="crop-card-header-icon">
+                  <BarChart3 size={18} className="text-[#087F5B]" />
+                </div>
+                <div>
+                  <h2 className="crop-card-title">Prediction Results</h2>
+                  <p className="crop-card-subtitle">AI-powered crop recommendations</p>
+                </div>
               </div>
             </div>
 

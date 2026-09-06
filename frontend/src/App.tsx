@@ -1,33 +1,53 @@
 import { createBrowserRouter, RouterProvider, Navigate } from 'react-router';
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 
 import AuthLayout from './layouts/AuthLayout';
-import DashboardLayout from './layouts/DashboardLayout';
-import ProtectedRoute from './components/common/ProtectedRoute';
+import PublicLayout from './layouts/PublicLayout';
 import ErrorBoundary from './components/common/ErrorBoundary';
 
+// Auth Pages
 import Login from './pages/Login';
 import Register from './pages/Register';
 import ForgotPassword from './pages/ForgotPassword';
-import Dashboard from './pages/Dashboard';
+
+// Marketing & Information Pages
+import Home from './pages/Home';
+import About from './pages/About';
+import HowItWorks from './pages/HowItWorks';
+import Features from './pages/Features';
+import Faq from './pages/Faq';
+
+// Service Pages
+import Services from './pages/Services';
 import CropPrediction from './pages/CropPrediction';
 import LeafDiagnosis from './pages/LeafDiagnosis';
-import Assistant from './pages/Assistant';
-import Weather from './pages/Weather';
 import Fertilizer from './pages/Fertilizer';
+import Weather from './pages/Weather';
+import Assistant from './pages/Assistant';
+import FarmAdvisory from './pages/FarmAdvisory';
+
+// Utility / Legacy Pages
 import History from './pages/History';
 import Reports from './pages/Reports';
 import Profile from './pages/Profile';
 import Settings from './pages/Settings';
 import NotFound from './pages/NotFound';
 
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      retry: 1,
+      refetchOnWindowFocus: false,
+    },
+  },
+});
+
 const router = createBrowserRouter([
   {
     path: '/',
     errorElement: <ErrorBoundary><NotFound /></ErrorBoundary>,
     children: [
-      { index: true, element: <Navigate to="/dashboard" replace /> },
-
-      // Auth Routes
+      // ── Auth Routes ──
       {
         element: <AuthLayout />,
         children: [
@@ -37,25 +57,44 @@ const router = createBrowserRouter([
         ],
       },
 
-      // Protected Routes
+      // ── Public SaaS Application Shell (Navbar + Content + Footer) ──
       {
-        element: <ProtectedRoute />,
+        element: <PublicLayout />,
         children: [
-          {
-            element: <DashboardLayout />,
-            children: [
-              { path: 'dashboard', element: <Dashboard /> },
-              { path: 'crop-prediction', element: <CropPrediction /> },
-              { path: 'leaf-diagnosis', element: <LeafDiagnosis /> },
-              { path: 'assistant', element: <Assistant /> },
-              { path: 'weather', element: <Weather /> },
-              { path: 'fertilizer', element: <Fertilizer /> },
-              { path: 'history', element: <History /> },
-              { path: 'reports', element: <Reports /> },
-              { path: 'profile', element: <Profile /> },
-              { path: 'settings', element: <Settings /> },
-            ],
-          },
+          // Home
+          { index: true, element: <Home /> },
+          { path: 'dashboard', element: <Navigate to="/" replace /> },
+
+          // Services Directory
+          { path: 'services', element: <Services /> },
+
+          // Dedicated Service Pages
+          { path: 'services/crop-recommendation', element: <CropPrediction /> },
+          { path: 'services/disease-diagnosis', element: <LeafDiagnosis /> },
+          { path: 'services/fertilizer-recommendation', element: <Fertilizer /> },
+          { path: 'services/weather', element: <Weather /> },
+          { path: 'services/assistant', element: <Assistant /> },
+          { path: 'services/farm-advisory', element: <FarmAdvisory /> },
+
+          // Information Pages
+          { path: 'about', element: <About /> },
+          { path: 'how-it-works', element: <HowItWorks /> },
+          { path: 'features', element: <Features /> },
+          { path: 'faq', element: <Faq /> },
+
+          // Backward-compatibility Aliases
+          { path: 'crop-prediction', element: <Navigate to="/services/crop-recommendation" replace /> },
+          { path: 'leaf-diagnosis', element: <Navigate to="/services/disease-diagnosis" replace /> },
+          { path: 'fertilizer', element: <Navigate to="/services/fertilizer-recommendation" replace /> },
+          { path: 'weather', element: <Navigate to="/services/weather" replace /> },
+          { path: 'assistant', element: <Navigate to="/services/assistant" replace /> },
+          { path: 'farm-advisory', element: <Navigate to="/services/farm-advisory" replace /> },
+
+          // Secondary Pages
+          { path: 'history', element: <History /> },
+          { path: 'reports', element: <Reports /> },
+          { path: 'profile', element: <Profile /> },
+          { path: 'settings', element: <Settings /> },
         ],
       },
 
@@ -66,7 +105,11 @@ const router = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={router} />;
+  return (
+    <QueryClientProvider client={queryClient}>
+      <RouterProvider router={router} />
+    </QueryClientProvider>
+  );
 }
 
 export default App;

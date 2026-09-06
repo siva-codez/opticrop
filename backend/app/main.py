@@ -52,6 +52,7 @@ app.add_middleware(
 
 register_exception_handlers(app)
 app.include_router(api_router)
+app.include_router(api_router, prefix="/api")
 
 @app.get("/", include_in_schema=False)
 async def root():

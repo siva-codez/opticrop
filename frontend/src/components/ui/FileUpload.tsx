@@ -61,14 +61,14 @@ export function FileUpload({ onFileSelect, acceptedTypes = "*", maxSizeMB = 5, l
 
   return (
     <div className="w-full">
-      {label && <label className="block text-xs font-semibold text-slate-300 mb-2">{label}</label>}
+      {label && <label className="block text-xs font-semibold text-[#2D3A34] mb-2">{label}</label>}
       
       {!file ? (
         <div 
-          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-[#070c14] ${
+          className={`border-2 border-dashed rounded-2xl p-8 text-center cursor-pointer transition-all duration-200 bg-[#F7FAF8] ${
             isDragging 
-              ? 'border-emerald-400 bg-emerald-500/10 shadow-[0_0_20px_rgba(34,197,94,0.2)]' 
-              : 'border-[#162438] hover:border-emerald-500/50 hover:bg-[#0c1524]'
+              ? 'border-[#087F5B] bg-[#087F5B]/5 shadow-sm' 
+              : 'border-[#E5ECE8] hover:border-[#087F5B]/50 hover:bg-emerald-50/20'
           }`}
           onDragOver={onDragOver}
           onDragLeave={onDragLeave}
@@ -83,26 +83,26 @@ export function FileUpload({ onFileSelect, acceptedTypes = "*", maxSizeMB = 5, l
             onChange={(e) => e.target.files && handleFile(e.target.files[0])}
           />
           <div className="flex justify-center mb-3">
-            <div className="p-3.5 bg-emerald-500/15 border border-emerald-500/30 rounded-2xl text-emerald-400 shadow-[0_0_12px_rgba(34,197,94,0.25)]">
+            <div className="p-3.5 bg-emerald-100/70 border border-emerald-200 rounded-2xl text-[#087F5B] shadow-xs">
               <Upload size={22} />
             </div>
           </div>
-          <p className="text-white font-semibold text-sm mb-1">Click to browse or drag and drop</p>
-          <p className="text-slate-400 text-xs">Supported formats: {acceptedTypes === '*' ? 'Any' : acceptedTypes} (Max {maxSizeMB}MB)</p>
+          <p className="text-[#17201C] font-semibold text-sm mb-1">Click to browse or drag and drop</p>
+          <p className="text-gray-500 text-xs">Supported formats: {acceptedTypes === '*' ? 'Any' : acceptedTypes} (Max {maxSizeMB}MB)</p>
         </div>
       ) : (
-        <div className="border border-emerald-500/40 rounded-2xl p-4 flex items-center gap-4 bg-[#0c1524] shadow-[0_0_15px_rgba(34,197,94,0.1)]">
-          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-[#070c14] border border-[#162438] flex items-center justify-center">
+        <div className="border border-[#E5ECE8] rounded-2xl p-4 flex items-center gap-4 bg-white shadow-sm">
+          <div className="w-16 h-16 rounded-xl overflow-hidden flex-shrink-0 bg-[#F7FAF8] border border-[#E5ECE8] flex items-center justify-center">
             {preview ? (
               <img src={preview} alt="Preview" className="w-full h-full object-cover" />
             ) : (
-              <File className="text-emerald-400" size={24} />
+              <File className="text-[#087F5B]" size={24} />
             )}
           </div>
           
           <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-white truncate">{file.name}</p>
-            <p className="text-xs text-slate-400">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
+            <p className="text-sm font-semibold text-[#17201C] truncate">{file.name}</p>
+            <p className="text-xs text-gray-500">{(file.size / 1024 / 1024).toFixed(2)} MB</p>
           </div>
           
           <button 
