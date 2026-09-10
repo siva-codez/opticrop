@@ -36,7 +36,7 @@ class Settings(BaseSettings):
     
     # Crop Disease Detection (Hugging Face / Vision Transformer Pipeline)
     DISEASE_MODEL_NAME: str = "wambugu71/crop_leaf_diseases_vit"
-    USE_HF_DISEASE_PIPELINE: bool = True
+    USE_HF_DISEASE_PIPELINE: bool = False
     
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", extra="ignore")
 
