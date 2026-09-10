@@ -1,5 +1,6 @@
 import os
 import re
+import json
 import logging
 from typing import Optional, List, Dict, Any
 from openai import AsyncOpenAI
@@ -22,53 +23,85 @@ LANGUAGE_MAP = {
 }
 
 NON_AGRI_REFUSALS = {
-    "English": "I am OptiCrop AI, dedicated exclusively to agricultural and farming assistance. 🌱 Please ask me questions regarding crops, soil health, plant diseases, fertilizers, weather advisory, or farming practices.",
+    "English": "I am OptiCrop AI, dedicated exclusively to agricultural and farming assistance. 🌱 Please ask me questions regarding crops, soil health, plant diseases, fertilizers, weather advisory, irrigation, or farming practices.",
     "Hindi (हिंदी)": "मैं ऑप्टिक्रॉप एआई (OptiCrop AI) हूँ, जो केवल कृषि और किसानी सहायता के लिए समर्पित है। 🌱 कृपया मुझसे फसलों, मिट्टी के स्वास्थ्य, पौधों की बीमारियों, उर्वरकों, मौसम सलाह या खेती के तरीकों से संबंधित प्रश्न पूछें।",
     "Tamil (தமிழ்)": "நான் ஆப்டிக்ராப் AI (OptiCrop AI), விவசாயம் மற்றும் பயிர் மேலாண்மைக்கான பிரத்யேக உதவியாளர். 🌱 தயவுசெய்து பயிர்கள், மண் வளம், பூச்சி நோய்கள், உர பரிந்துரைகள் அல்லது வானிலை ஆலோசனைகள் பற்றிய கேள்விகளை கேளுங்கள்.",
     "Telugu (తెలుగు)": "నేను ఆప్టిక్రాప్ AI (OptiCrop AI), వ్యవసాయం మరియు పంటల మార్గదర్శకత్వానికి మాత్రమే అంకితం చేయబడిన సహాయకుడిని. 🌱 దయచేసి పంటలు, నేల ఆరోగ్యం, తెగుళ్లు, ఎరువులు లేదా వ్యవసాయ పద్ధతులపై ప్రశ్నలు అడగండి.",
     "Malayalam (മലയാളം)": "ഞാൻ ഒപ്റ്റിക്രോപ്പ് AI (OptiCrop AI), കൃഷിയുമായി ബന്ധപ്പെട്ട കാര്യങ്ങൾക്ക് മാത്രമായുള്ള കാർഷിക സഹായിയാണ്. 🌱 ദയവായി വിളകൾ, മണ്ണിന്റെ ഗുണം, സസ്യ രോഗങ്ങൾ, വളപ്രയോഗം, കാലാവസ്ഥ എന്നിവയെക്കുറിച്ചുള്ള ചോദ്യങ്ങൾ ചോദിക്കുക.",
 }
 
+# General greetings that should receive a friendly agricultural welcome
+GREETING_WORDS = {"hello", "hi", "hey", "namaste", "vanakkam", "namaskaram", "pranam", "greetings", "good morning", "good afternoon", "good evening"}
+
 class OpenAIService:
     @classmethod
     def _get_client_and_model(cls):
+        """
+        Resolves the LLM client and model with Groq priority.
+        1. Groq Cloud API (fastest LPU inference)
+        2. Hugging Face Router
+        3. OpenAI direct API
+        """
         settings = get_settings()
-        
-        # 1. Resolve token: Check HF_TOKEN first, then OPENAI_API_KEY
-        token = settings.HF_TOKEN or os.environ.get("HF_TOKEN") or ""
-        base_url = settings.AI_BASE_URL or "https://router.huggingface.co/v1"
-        model = settings.AI_MODEL or "Qwen/Qwen2.5-7B-Instruct:featherless-ai"
 
-        if not token:
-            openai_key = settings.OPENAI_API_KEY or os.environ.get("OPENAI_API_KEY") or ""
-            # Disregard placeholder keys
-            if openai_key and not openai_key.startswith("sk-your-"):
-                token = openai_key
-                base_url = None  # Use official OpenAI endpoint
-                model = settings.OPENAI_MODEL or "gpt-4o-mini"
+        # 1. Check Groq API Key
+        groq_key = settings.GROQ_API_KEY or os.environ.get("GROQ_API_KEY") or ""
+        if groq_key and not groq_key.startswith("gsk_your_") and len(groq_key) > 10:
+            base_url = settings.GROQ_BASE_URL or "https://api.groq.com/openai/v1"
+            model = settings.GROQ_MODEL or "qwen/qwen3.8-27b"
+            client = AsyncOpenAI(
+                api_key=groq_key,
+                base_url=base_url,
+                timeout=15.0
+            )
+            return client, model, "groq"
 
-        # Check if token is a dummy placeholder
-        if token in ["your-huggingface-token-here", "sk-your-openai-api-key", ""]:
-            return None, None, None
+        # 2. Check Hugging Face Token
+        hf_token = settings.HF_TOKEN or os.environ.get("HF_TOKEN") or ""
+        if hf_token and not hf_token.startswith("hf_your_") and len(hf_token) > 5:
+            base_url = settings.AI_BASE_URL or "https://router.huggingface.co/v1"
+            model = settings.AI_MODEL or "Qwen/Qwen2.5-7B-Instruct:featherless-ai"
+            client = AsyncOpenAI(
+                api_key=hf_token,
+                base_url=base_url,
+                timeout=15.0
+            )
+            return client, model, "huggingface"
 
-        client = AsyncOpenAI(
-            api_key=token,
-            base_url=base_url if base_url else None,
-            timeout=12.0
-        )
-        return client, model, token
+        # 3. Check OpenAI Direct Key
+        openai_key = settings.OPENAI_API_KEY or os.environ.get("OPENAI_API_KEY") or ""
+        if openai_key and not openai_key.startswith("sk-your-") and len(openai_key) > 10:
+            model = settings.OPENAI_MODEL or "gpt-4o-mini"
+            client = AsyncOpenAI(
+                api_key=openai_key,
+                timeout=15.0
+            )
+            return client, model, "openai"
+
+        return None, None, None
 
     @classmethod
     def _is_non_agricultural(cls, message: str) -> bool:
-        """Lightweight pre-filter for obvious non-agricultural topics."""
+        """
+        Fast filter for questions that are clearly outside the agricultural domain.
+        Returns True if the message is definitely non-agricultural.
+        """
         msg = message.strip().lower()
+        
+        # Whitelist simple greetings
+        if msg in GREETING_WORDS or any(msg.startswith(g) and len(msg.split()) <= 3 for g in GREETING_WORDS):
+            return False
+
         non_agri_patterns = [
-            r"\b(capital of|president of|prime minister of|who is the king)\b",
-            r"\b(write a python|write code|javascript|html|css code|fix my bug|c\+\+)\b",
-            r"\b(movie|hollywood|bollywood|actor|actress|celebrity|singer|song lyrics)\b",
-            r"\b(bitcoin|crypto|stock market|forex trading|ethereum)\b",
-            r"\b(solve this math|algebra|calculus|pythagoras|integral)\b",
-            r"\b(who won the match|cricket world cup|football score|fifa)\b",
+            r"\b(capital of|who is the president|who is the prime minister|king of|chief minister of|queen of)\b",
+            r"\b(write a python|write code|javascript|html|css code|fix my bug|c\+\+|java code|sql query|react component)\b",
+            r"\b(movie|hollywood|bollywood|actor|actress|celebrity|singer|song lyrics|box office|cinema)\b",
+            r"\b(bitcoin|crypto|cryptocurrency|stock market|forex trading|ethereum|wall street|shares to buy)\b",
+            r"\b(solve this math|algebra|calculus|pythagoras|integral|derivative|trigonometry)\b",
+            r"\b(who won the match|cricket world cup|football score|fifa|ipl score|champions league|tennis match)\b",
+            r"\b(write an essay about|write a poem about love|write a romance story|joke about dating)\b",
+            r"\b(gaming|playstation|xbox|gta 6|pubg|fortnite|minecraft)\b",
+            r"\b(car insurance|credit score|mortgage rate|personal loan)\b",
         ]
         for pattern in non_agri_patterns:
             if re.search(pattern, msg):
@@ -80,50 +113,50 @@ class OpenAIService:
         lang_key = language.strip().lower() if language else "en"
         lang_name = LANGUAGE_MAP.get(lang_key, "English")
 
-        # Strict domain check: reject non-agricultural queries immediately
+        # 1. Strict domain pre-filter: Reject non-agricultural queries immediately
         if OpenAIService._is_non_agricultural(message):
             return NON_AGRI_REFUSALS.get(lang_name, NON_AGRI_REFUSALS["English"])
 
-        client, model, token = OpenAIService._get_client_and_model()
+        client, model, provider = OpenAIService._get_client_and_model()
 
-        # Build prompt with strict domain and language instructions
+        # 2. Strict Domain & Language System Prompt for Groq / LLM
         system_prompt = f"""You are OptiCrop AI, an expert precision agricultural assistant and certified agronomist for farmers.
 
-STRICT DOMAIN RESTRICTION:
-- You ONLY provide guidance on agriculture, farming, crops, soil health, plant pathology, disease treatment, fertilizer calculations, irrigation, livestock, harvesting, and weather impacts on agriculture.
-- If the user asks about ANY topic outside of agriculture or farming (e.g. general trivia, coding, politics, entertainment, celebrities, non-farming business), you MUST politely refuse and reply:
-  "I am OptiCrop AI, dedicated exclusively to agricultural and farming assistance. Please ask me questions regarding crops, soil health, plant diseases, fertilizers, weather advisory, or farming practices."
+CRITICAL DOMAIN RESTRICTION:
+- You ONLY answer questions related to agriculture, farming, crops, soil health, plant diseases & pathology, pest control, chemical & organic fertilizers, irrigation scheduling, livestock, harvesting, agricultural machinery, and weather advisory for farming.
+- If the user's message is ANY topic outside agriculture or farming (e.g. general trivia, coding, politics, movies, sports, finance, romance, gaming, non-farming math), you MUST STRICTLY REFUSE and output ONLY this exact refusal in {lang_name}:
+"{NON_AGRI_REFUSALS.get(lang_name, NON_AGRI_REFUSALS['English'])}"
 
-LANGUAGE INSTRUCTION:
-- You MUST answer completely and fluently in {lang_name}.
-- Keep explanations clear, practical, and farmer-friendly with actionable steps (such as specific dosages per acre, timing, and field tips)."""
+LANGUAGE MANDATE:
+- You MUST answer completely, accurately, and fluently in {lang_name}.
+- Keep all advice highly practical, actionable, farmer-friendly, with specific dosages per acre/liter, timings, and safety measures."""
 
         messages = [{"role": "system", "content": system_prompt}]
 
         if history:
-            for item in history[-6:]:  # last 3 turns
+            for item in history[-6:]:  # last 3 conversation turns
                 if isinstance(item, dict) and "role" in item and "content" in item:
                     messages.append({"role": item["role"], "content": item["content"]})
 
         messages.append({"role": "user", "content": message})
 
-        # Try live LLM call if API client is configured
+        # 3. Live LLM Call via Groq / LLM Provider
         if client and model:
             try:
                 response = await client.chat.completions.create(
                     model=model,
                     messages=messages,
-                    temperature=0.4,
-                    max_tokens=600,
+                    temperature=0.3,
+                    max_tokens=700,
                 )
                 if response.choices and len(response.choices) > 0:
                     reply = response.choices[0].message.content
                     if reply and reply.strip():
                         return reply.strip()
             except Exception as e:
-                logger.warning(f"Live AI completion failed: {e}. Using expert agronomic fallback.")
+                logger.warning(f"Live Groq/AI completion failed: {e}. Utilizing expert agronomic fallback.")
 
-        # Robust expert agronomic fallback (ensures 100% working condition regardless of external API state)
+        # 4. Expert Agronomic Multilingual Fallback
         lower_msg = message.lower()
         if "yellow" in lower_msg or "पीला" in lower_msg or "மஞ்சள்" in lower_msg:
             if "tamil" in lang_name.lower():
@@ -163,9 +196,9 @@ LANGUAGE INSTRUCTION:
 
         elif "crop" in lower_msg or "grow" in lower_msg or "फसल" in lower_msg or "பயிர்" in lower_msg or "పంట" in lower_msg or "വിള" in lower_msg:
             if "tamil" in lang_name.lower():
-                return "உங்கள் மண்ணின் NPK மற்றும் pH அளவைப் பொறுத்து சிறந்த பயிரை தேர்வு செய்யலாம். खरीஃப் பருவத்தில் நெல், மக்காச்சோளம், சோயாபீன் நல்ல மகசூல் தரும். எங்கள் 'Crop Recommendation' கருவியில் உங்கள் மண் விவரங்களை உள்ளிட்டு துல்லியமான பரிந்துரை பெறலாம்."
+                return "உங்கள் மண்ணின் NPK மற்றும் pH அளவைப் பொறுத்து சிறந்த பயிரை தேர்வு செய்யலாம். காரீஃப் பருவத்தில் நெல், மக்காச்சோளம் நல்ல மகசூல் தரும். எங்கள் 'Crop Recommendation' கருவியில் உங்கள் மண் விவரங்களை உள்ளிட்டு துல்லியமான பரிந்துரை பெறலாம்."
             elif "hindi" in lang_name.lower():
-                return "खरीफ मौसम में धान, मक्का और दालें उपयुक्त हैं। रबी में गेहूं, सरसों और चना सर्वोत्तम परिणाम देते हैं। अपनी मिट्टी के NPK और pH की सटीक जांच के लिए हमारे 'Crop Recommendation' टूल का उपयोग करें।"
+                return "खरीफ मौसम में धान, मक्का और दालें उपयुक्त हैं। रबी में गेहूं, सरसों और चना सर्वोत्तम परिणाम देते हैं। अपनी मिट्टी के NPK और pH की सटीक जांच के लिए हमारे 'Crop Recommendation' टूल का उपयोग करें."
             elif "telugu" in lang_name.lower():
                 return "మీ నేలలోని NPK మరియు pH స్థాయిల ఆధారంగా సరైన పంటను ఎంచుకోండి. ఖరీఫ్ సీజన్లో వరి, మొక్కజొన్న అనుకూలం; రబీలో గోధుమలు, పప్పుదినుసులు మంచి దిగుబడినిస్తాయి. మా 'Crop Recommendation' టూల్ ద్వారా ఖచ్చితమైన విశ్లేషణ పొందండి."
             elif "malayalam" in lang_name.lower():
@@ -174,7 +207,7 @@ LANGUAGE INSTRUCTION:
                 return "Crop suitability depends on soil NPK levels, pH, and season. For Kharif, Paddy and Maize offer strong yields; for Rabi, Wheat, Mustard, and Pulses excel. Use our precision Crop Recommendation tool to calculate the exact match for your field!"
 
         # General greeting / agricultural response
-        return f"Hello! I am OptiCrop AI. 🌾 I can help you with crop recommendation, leaf disease diagnosis, personalized fertilizer doses, and weather impact advisories in {lang_name}. What crop are you cultivating?"
+        return f"Hello! I am OptiCrop AI. 🌾 Powered by Groq fast intelligence, I can help you with crop recommendation, leaf disease diagnosis, personalized fertilizer doses, pest management, and weather impact advisories in {lang_name}. What crop are you cultivating today?"
 
     @classmethod
     async def suggest_disease_solution(
@@ -187,26 +220,36 @@ LANGUAGE INSTRUCTION:
     ) -> Dict[str, Any]:
         """
         AI Agronomist Engine: Generates tailored clinical solutions,
-        organic remedies, and chemical controls for diagnosed leaf diseases.
+        organic remedies, and chemical controls for diagnosed leaf diseases via Groq.
         """
-        client, model, token = cls._get_client_and_model()
-
+        client, model, provider = cls._get_client_and_model()
+        lang_name = LANGUAGE_MAP.get(language.strip().lower(), "English")
         symptoms_str = ", ".join(symptoms) if symptoms else "Foliar lesion and discoloration symptoms"
 
-        system_prompt = """You are OptiCrop AI Lead Agronomist and Certified Plant Pathology Expert.
-Your job is to provide clear, actionable treatment plans for crop diseases."""
+        system_prompt = f"""You are OptiCrop AI Lead Agronomist and Certified Plant Pathology Expert.
+Generate an expert, actionable disease treatment protocol in {lang_name}.
+Output MUST be valid JSON matching this exact structure:
+{{
+  "ai_solution": "2-3 crisp sentences with immediate emergency field action plan and warnings.",
+  "organic_remedies": [
+    "Organic remedy 1 with preparation/dosage per liter",
+    "Organic remedy 2 with application method",
+    "Bio-control agent 3 with exact dosage per acre"
+  ],
+  "chemical_remedies": [
+    "Chemical 1 (Brand/Active Ingredient %) @ exact dosage per liter and per acre",
+    "Chemical 2 @ exact dosage per liter and per acre",
+    "Bactericide / Fungicide combination for secondary spread"
+  ]
+}}"""
 
-        user_prompt = f"""A farmer uploaded a crop leaf photo diagnosed with:
+        user_prompt = f"""Generate clinical treatment for:
 - Crop: {plant}
-- Detected Disease: {disease}
+- Diagnosed Disease: {disease}
 - Severity Level: {severity}
 - Observed Symptoms: {symptoms_str}
 
-Please generate the optimal clinical action plan:
-1. Executive AI Solution (2-3 sentences with immediate field steps)
-2. Best Organic Remedies (biocontrol agents, neem-based formulations, cultural measures)
-3. Best Chemical Remedies (specific chemical name, formulation %, exact dose per liter and per acre)
-4. Spraying Protocol (timing, water volume, and resistance management)"""
+Respond with valid JSON only."""
 
         if client and model:
             try:
@@ -216,29 +259,28 @@ Please generate the optimal clinical action plan:
                         {"role": "system", "content": system_prompt},
                         {"role": "user", "content": user_prompt}
                     ],
-                    temperature=0.3,
+                    temperature=0.2,
                     max_tokens=600,
                 )
                 if response.choices and len(response.choices) > 0:
-                    ai_text = response.choices[0].message.content.strip()
-                    if ai_text:
+                    raw_text = response.choices[0].message.content.strip()
+                    # Strip markdown code fencing if present
+                    if "```json" in raw_text:
+                        raw_text = raw_text.split("```json")[1].split("```")[0].strip()
+                    elif "```" in raw_text:
+                        raw_text = raw_text.split("```")[1].split("```")[0].strip()
+
+                    parsed = json.loads(raw_text)
+                    if isinstance(parsed, dict) and "ai_solution" in parsed:
                         return {
-                            "ai_solution": ai_text,
-                            "organic_remedies": [
-                                "Neem Seed Kernel Extract (NSKE 5%) foliar spray @ 50 ml/L to inhibit spore germination",
-                                "Trichoderma viride / harzianum bio-fungicide @ 2.5 kg/acre mixed with 100 kg well-decomposed FYM",
-                                "Pseudomonas fluorescens (1% WP) @ 10 g/L for systemic induced resistance"
-                            ],
-                            "chemical_remedies": [
-                                "Tricyclazole 75% WP @ 0.6 g/L (120 g/acre in 200 L water) for blast lesions",
-                                "Copper Oxychloride 50% WP @ 2.5 g/L + Streptocycline (100 ppm) for bacterial blights",
-                                "Hexaconazole 5% EC @ 2 ml/L or Propiconazole 25% EC @ 1 ml/L for sheath & leaf spots"
-                            ]
+                            "ai_solution": parsed.get("ai_solution", ""),
+                            "organic_remedies": parsed.get("organic_remedies", []),
+                            "chemical_remedies": parsed.get("chemical_remedies", [])
                         }
             except Exception as e:
-                logger.warning(f"Live AI disease recommendation failed: {e}. Using expert protocol fallback.")
+                logger.warning(f"Live Groq disease recommendation JSON parsing failed: {e}. Checking text or fallback.")
 
-        # Expert ICAR agronomic fallback based on specific disease
+        # Expert Agronomic Fallback Profiles
         d_lower = disease.lower()
         if "blast" in d_lower:
             return {
@@ -256,7 +298,7 @@ Please generate the optimal clinical action plan:
             }
         elif "bacterial" in d_lower or "blight" in d_lower:
             return {
-                "ai_solution": "🚨 **Immediate AI Action Plan**: Bacterial Leaf Blight advances through water droplets and wounds along wavy leaf margins. Drain excess stagnant water from the affected field immediately to prevent bacterial motility between rice hills. Strictly stop urea application until new tillers emerge clean. Apply bactericide + copper foliar spray within 24 hours.",
+                "ai_solution": "🚨 **Immediate AI Action Plan**: Bacterial Leaf Blight advances through water droplets and wounds along wavy leaf margins. Drain excess stagnant water from the affected field immediately to prevent bacterial motility between crop hills. Strictly stop urea application until new tillers emerge clean. Apply bactericide + copper foliar spray within 24 hours.",
                 "organic_remedies": [
                     "Fresh cow dung slurry spray (20 kg cow dung in 200 L water, settled, filtered) to encourage antagonistic microflora",
                     "Foliar spray with Neem Seed Kernel Extract (NSKE 5%) to create a protective alkaloid barrier",
@@ -298,7 +340,7 @@ Please generate the optimal clinical action plan:
             }
         else:
             return {
-                "ai_solution": f"🚨 **Immediate AI Action Plan**: For {disease}, inspect leaf undersides for fungal sporulation or insect vector feeding. Remove and burn severely blighted leaves. Maintain balanced nutrition (avoid excessive nitrogen), improve field aeration, and apply a preventative broad-spectrum protective spray early in the morning.",
+                "ai_solution": f"🚨 **Immediate AI Action Plan**: For {disease} in {plant}, inspect leaf undersides for active fungal sporulation or insect vector feeding. Remove severely blighted leaves. Maintain balanced plant nutrition (avoid excessive nitrogen), improve aeration, and apply a targeted protective bio-control or systemic spray.",
                 "organic_remedies": [
                     "Neem Seed Kernel Extract (NSKE 5%) or cold-pressed Neem Oil @ 3 ml/L",
                     "Trichoderma viride bio-fungicide @ 2.5 kg/acre in moist organic compost",
