@@ -12,6 +12,7 @@ from app.api.router import api_router
 from app.services.ml.model_registry import ModelRegistry
 from app.services.ml.crop_model_service import CropModelService
 from app.services.ml.disease_model_service import DiseaseModelService
+from app.services.ml.fertilizer_model_service import FertilizerModelService
 
 settings = get_settings()
 limiter = Limiter(key_func=get_remote_address)
@@ -24,15 +25,18 @@ async def lifespan(app: FastAPI):
     registry = ModelRegistry()
     crop_service = CropModelService()
     disease_service = DiseaseModelService()
+    fertilizer_service = FertilizerModelService()
     
     try:
         crop_service.load_model()
         disease_service.load_model()
+        fertilizer_service.load_model()
     except Exception as e:
         print(f"Warning: Could not load models: {e}")
         
     registry.register("crop_model", crop_service)
     registry.register("disease_model", disease_service)
+    registry.register("fertilizer_model", fertilizer_service)
     
     yield
     # Shutdown
