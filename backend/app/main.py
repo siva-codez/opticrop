@@ -46,9 +46,23 @@ app = FastAPI(title="OptiCrop API", lifespan=lifespan)
 app.state.limiter = limiter
 app.add_exception_handler(RateLimitExceeded, _rate_limit_exceeded_handler)
 
+# Configure CORS to permit local development, Vercel deployments, and production URLs
+allowed_origins = [
+    origin.strip()
+    for origin in [
+        settings.FRONTEND_URL,
+        "http://localhost:5173",
+        "http://localhost:3000",
+        "http://127.0.0.1:5173",
+        "https://opticrop-ochre.vercel.app",
+    ]
+    if origin
+]
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[settings.FRONTEND_URL],
+    allow_origins=list(set(allowed_origins)),
+    allow_origin_regex=r"^https:\/\/.*\.vercel\.app$",
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
