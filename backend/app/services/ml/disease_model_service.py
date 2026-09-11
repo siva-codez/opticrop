@@ -15,9 +15,9 @@ settings = get_settings()
 class DiseaseModelService:
     def __init__(self):
         self.pipe = None
-        self.available = False
+        self.available = True
         self.model_name = getattr(settings, "DISEASE_MODEL_NAME", "wambugu71/crop_leaf_diseases_vit")
-        self.use_hf_pipeline = getattr(settings, "USE_HF_DISEASE_PIPELINE", True)
+        self.use_hf_pipeline = getattr(settings, "USE_HF_DISEASE_PIPELINE", False)
 
     def load_model(self):
         self.available = True
