@@ -1,0 +1,44 @@
+{
+    "model_name": "OptiCrop Fertilizer Recommendation Engine",
+    "algorithm": "Random Forest Classifier",
+    "training_samples": 3360,
+    "testing_samples": 840,
+    "features": [
+        "temparature",
+        "humidity",
+        "moisture",
+        "nitrogen",
+        "phosphorous",
+        "potassium",
+        "soil type",
+        "crop type"
+    ],
+    "numerical_features": [
+        "temparature",
+        "humidity",
+        "moisture",
+        "nitrogen",
+        "phosphorous",
+        "potassium"
+    ],
+    "categorical_features": [
+        "soil type",
+        "crop type"
+    ],
+    "classes": [
+        "10-26-26",
+        "14-35-14",
+        "17-17-17",
+        "20-20",
+        "28-28",
+        "DAP",
+        "Urea"
+    ],
+    "accuracy": 0.9905,
+    "precision": 0.9908,
+    "recall": 0.9905,
+    "f1_score": 0.9905,
+    "cv_mean": 0.9898,
+    "cv_std": 0.005,
+    "training_date": "2026-09-12 10:21:54"
+}

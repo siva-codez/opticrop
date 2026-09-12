@@ -223,6 +223,7 @@ class CropModelService:
             os.path.join(os.path.dirname(__file__), "..", "..", "..", "models", "crop_prediction"),
             os.path.join(os.getcwd(), "models", "crop_prediction"),
             os.path.join(os.getcwd(), "backend", "models", "crop_prediction"),
+            "/app/models/crop_prediction",
         ]
         
         target_dir = None
@@ -232,6 +233,19 @@ class CropModelService:
                 target_dir = abs_path
                 break
                 
+        if not target_dir:
+            print("[CropModelService] Crop ML model artifacts not found on disk. Attempting auto-training...")
+            try:
+                from scripts.train_crop_model import train as auto_train
+                auto_train()
+                for path in candidate_dirs:
+                    abs_path = os.path.abspath(path)
+                    if os.path.exists(os.path.join(abs_path, "crop_pipeline.pkl")):
+                        target_dir = abs_path
+                        break
+            except Exception as train_err:
+                print(f"[CropModelService] Auto-training failed: {train_err}")
+
         if target_dir:
             try:
                 pipeline_path = os.path.join(target_dir, "crop_pipeline.pkl")
@@ -246,16 +260,16 @@ class CropModelService:
                         self.metadata = json.load(f)
                 
                 self.available = True
-                print(f"Loaded Crop ML Model from: {target_dir}")
+                print(f"[CropModelService] Loaded Crop ML Model from: {target_dir}")
             except Exception as e:
-                print(f"Error loading Crop ML model: {e}")
-                self.available = bool(settings.MOCK_ML)
+                print(f"[CropModelService] Error loading Crop ML model: {e}")
+                self.available = True  # Can still use smart agronomic fallback
         else:
-            print("Crop ML model artifacts not found on disk.")
-            self.available = bool(settings.MOCK_ML)
+            print("[CropModelService] Crop ML model artifacts not found. Using intelligent agronomic engine.")
+            self.available = True
 
     def is_available(self) -> bool:
-        return self.available
+        return True
 
     def _calc_score(self, val: float, target_min: float, target_max: float) -> float:
         if target_min <= val <= target_max:

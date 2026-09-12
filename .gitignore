@@ -69,12 +69,10 @@ ios/
 android/
 
 # ========================
-# ML Models (large binary files)
+# ML Models (large binary files > 50MB)
 # ========================
-*.joblib
 *.keras
 *.h5
-*.pkl
 *.pt
 *.pth
 *.onnx
@@ -82,8 +80,16 @@ android/
 *.pb
 ml/models/*
 !ml/models/.gitkeep
+!ml/models/crop_prediction/
+!ml/models/crop_prediction/**
+!ml/models/fertilizer_prediction/
+!ml/models/fertilizer_prediction/**
 backend/models/*
 !backend/models/.gitkeep
+!backend/models/crop_prediction/
+!backend/models/crop_prediction/**
+!backend/models/fertilizer_prediction/
+!backend/models/fertilizer_prediction/**
 
 # ========================
 # Logs
