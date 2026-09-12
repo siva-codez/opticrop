@@ -8,6 +8,7 @@ import numpy as np
 
 from app.core.config import get_settings
 from app.core.exceptions import ModelNotAvailableError
+from app.services.ml.plant_validator import PlantValidator
 
 logger = logging.getLogger(__name__)
 settings = get_settings()
@@ -134,6 +135,11 @@ class DiseaseModelService:
             raise ModelNotAvailableError("Disease diagnosis model is not available.")
 
         pil_image = self._to_pil_image(image_data)
+
+        # Enforce botanical plant leaf validation
+        is_valid_plant, val_err, _ = PlantValidator.validate_crop_image(pil_image)
+        if not is_valid_plant:
+            raise ValueError(val_err)
 
         # 1. Primary: Hugging Face Vision Transformer Pipeline
         if self.pipe is not None:
