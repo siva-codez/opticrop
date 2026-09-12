@@ -37,7 +37,7 @@ The platform combines **Machine Learning, Computer Vision, Generative AI, Weathe
 </td>
 <td align="center" width="50%">
 <b>🌱 Crop Recommendation</b><br/><br/>
-<img src="docs/screenshots/opticrop_diseas_recomm.png" width="100%" alt="OptiCrop Crop Recommendation">
+<img src="docs/screenshots/opticrop_crop_recomm.png" width="100%" alt="OptiCrop Crop Recommendation">
 </td>
 </tr>
 <tr>
@@ -53,11 +53,11 @@ The platform combines **Machine Learning, Computer Vision, Generative AI, Weathe
 <tr>
 <td align="center" width="50%">
 <b>🌦️ Fertilizer Recommendatiom</b><br/><br/>
-<img src="docs/screenshots/opticrop_fertili_recom" width="100%" alt="OptiCrop Weather Intelligence">
+<img src="docs/screenshots/opticrop_fertili_recom.png" width="100%" alt="OptiCrop Weather Intelligence">
 </td>
 <td align="center" width="50%">
 <b>🌦️ Weather Intelligence</b><br/><br/>
-<img src="docs/screenshots/Opticrop_weather" width="100%" alt="OptiCrop Weather Intelligence">
+<img src="docs/screenshots/Opticrop_weather.png" width="100%" alt="OptiCrop Weather Intelligence">
 </td>
 </tr>
 </table>
