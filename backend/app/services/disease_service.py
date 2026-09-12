@@ -7,6 +7,7 @@ from PIL import Image
 from app.schemas.disease import DiseasePredictionResponse, AlternativePrediction, RecoveryMilestone
 from app.services.ml.model_registry import ModelRegistry
 from app.services.ml.disease_model_service import DiseaseModelService
+from app.services.ml.plant_validator import PlantValidator
 from app.services.openai_service import OpenAIService
 
 DISEASE_PROFILES: Dict[str, Dict[str, Any]] = {
@@ -657,6 +658,14 @@ class DiseaseService:
             raise HTTPException(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 detail="Invalid or corrupt image file."
+            )
+
+        # Enforce strict crop plant / leaf verification
+        is_valid_plant, validation_error, _ = PlantValidator.validate_crop_image(content)
+        if not is_valid_plant:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=validation_error
             )
 
         # Get or initialize ML service
