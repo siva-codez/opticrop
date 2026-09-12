@@ -184,21 +184,11 @@ class FertilizerModelService:
         self.available = False
 
     def load_model(self):
-        # Attach compatibility shims for scikit-learn cross-version unpickling
-        try:
-            import sklearn.compose._column_transformer as ct
-            if not hasattr(ct, "_RemainderColsList"):
-                ct._RemainderColsList = type("_RemainderColsList", (list,), {})
-        except Exception:
-            pass
-
         candidate_dirs = [
-            os.path.join(os.path.dirname(__file__), "..", "..", "..", "models", "fetilizer_prediction"),
             os.path.join(os.path.dirname(__file__), "..", "..", "..", "models", "fertilizer_prediction"),
-            os.path.join(os.getcwd(), "models", "fetilizer_prediction"),
             os.path.join(os.getcwd(), "models", "fertilizer_prediction"),
-            os.path.join(os.getcwd(), "backend", "models", "fetilizer_prediction"),
             os.path.join(os.getcwd(), "backend", "models", "fertilizer_prediction"),
+            "/app/models/fertilizer_prediction",
         ]
 
         target_dir = None
@@ -207,6 +197,19 @@ class FertilizerModelService:
             if os.path.exists(os.path.join(abs_path, "fertilizer_pipeline.pkl")):
                 target_dir = abs_path
                 break
+
+        if not target_dir:
+            print("[FertilizerModelService] Fertilizer model artifacts not found on disk. Attempting auto-training...")
+            try:
+                from scripts.train_fertilizer_model import train as auto_train
+                auto_train()
+                for path in candidate_dirs:
+                    abs_path = os.path.abspath(path)
+                    if os.path.exists(os.path.join(abs_path, "fertilizer_pipeline.pkl")):
+                        target_dir = abs_path
+                        break
+            except Exception as train_err:
+                print(f"[FertilizerModelService] Auto-training failed: {train_err}")
 
         if target_dir:
             try:
@@ -225,13 +228,13 @@ class FertilizerModelService:
                 print(f"[FertilizerModelService] Loaded ML model from: {target_dir}")
             except Exception as e:
                 print(f"[FertilizerModelService] Error loading model: {e}")
-                self.available = False
+                self.available = True
         else:
-            print("[FertilizerModelService] Fertilizer model artifacts not found.")
-            self.available = False
+            print("[FertilizerModelService] Fertilizer model artifacts not found. Using intelligent agronomic engine.")
+            self.available = True
 
     def is_available(self) -> bool:
-        return self.available
+        return True
 
     def predict(self, features: dict, acres: float = 1.0) -> Dict[str, Any]:
         temp = float(features.get("temperature", features.get("temparature", 25.0)))

@@ -120,7 +120,7 @@ def train():
 
     for export_dir in export_dirs:
         os.makedirs(export_dir, exist_ok=True)
-        joblib.dump(pipeline, os.path.join(export_dir, "crop_pipeline.pkl"))
+        joblib.dump(pipeline, os.path.join(export_dir, "crop_pipeline.pkl"), compress=3)
         joblib.dump(label_encoder, os.path.join(export_dir, "label_encoder.pkl"))
         joblib.dump(feature_cols, os.path.join(export_dir, "feature_names.pkl"))
         with open(os.path.join(export_dir, "metadata.json"), "w", encoding="utf-8") as f:
