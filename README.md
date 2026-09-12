@@ -6,9 +6,6 @@
   <a href="https://opticrop-ochre.vercel.app">
     <img src="https://img.shields.io/badge/🌐%20Live%20Demo-OptiCrop-success?style=for-the-badge" alt="Live Demo"/>
   </a>
-  <a href="https://github.com/siva-codez">
-    <img src="https://img.shields.io/badge/GitHub-siva--codez-black?style=for-the-badge&logo=github" alt="GitHub"/>
-  </a>
 </p>
 
 ---
@@ -25,45 +22,42 @@ The platform combines **Machine Learning, Computer Vision, Generative AI, Weathe
 
 ## 🌐 Live Demo
 
-<p align="center">
-  <a href="https://opticrop-ochre.vercel.app">
-    <img src="https://img.shields.io/badge/OPEN%20OPTICROP-Live%20Application-success?style=for-the-badge&logo=vercel" alt="Open OptiCrop"/>
-  </a>
-</p>
-
-<p align="center">🔗 <a href="https://opticrop-ochre.vercel.app">opticrop-ochre.vercel.app</a></p>
+<p align="center">🔗 <a href="https://opticrop-ochre.vercel.app">Live OptiCrop Website </a></p>
 
 ---
 
 ## 📸 Application Preview
 
-> Add your actual screenshots inside `docs/screenshots/`.
 
 <table>
 <tr>
 <td align="center" width="50%">
 <b>🏠 Home Dashboard</b><br/><br/>
-<img src="docs/screenshots/home.png" width="100%" alt="OptiCrop Home Dashboard">
+<img src="docs/screenshots/opticrop_home.png" width="100%" alt="OptiCrop Home Dashboard">
 </td>
 <td align="center" width="50%">
 <b>🌱 Crop Recommendation</b><br/><br/>
-<img src="docs/screenshots/crop-recommendation.png" width="100%" alt="OptiCrop Crop Recommendation">
+<img src="docs/screenshots/opticrop_diseas_recomm.png" width="100%" alt="OptiCrop Crop Recommendation">
 </td>
 </tr>
 <tr>
 <td align="center" width="50%">
 <b>🍃 Disease Detection</b><br/><br/>
-<img src="docs/screenshots/disease-detection.png" width="100%" alt="OptiCrop Disease Detection">
+<img src="docs/screenshots/opticrop_diseas.png" width="100%" alt="OptiCrop Disease Detection">
 </td>
 <td align="center" width="50%">
 <b>🤖 AI Agricultural Assistant</b><br/><br/>
-<img src="docs/screenshots/ai-assistant.png" width="100%" alt="OptiCrop AI Assistant">
+<img src="docs/screenshots/opticrop_chatbot.png" width="100%" alt="OptiCrop AI Assistant">
 </td>
 </tr>
 <tr>
-<td align="center" colspan="2">
+<td align="center" width="50%">
+<b>🌦️ Fertilizer Recommendatiom</b><br/><br/>
+<img src="docs/screenshots/opticrop_fertili_recom" width="100%" alt="OptiCrop Weather Intelligence">
+</td>
+<td align="center" width="50%">
 <b>🌦️ Weather Intelligence</b><br/><br/>
-<img src="docs/screenshots/weather.png" width="60%" alt="OptiCrop Weather Intelligence">
+<img src="docs/screenshots/Opticrop_weather" width="100%" alt="OptiCrop Weather Intelligence">
 </td>
 </tr>
 </table>
